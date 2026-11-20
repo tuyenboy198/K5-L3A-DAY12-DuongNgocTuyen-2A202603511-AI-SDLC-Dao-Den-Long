@@ -1,0 +1,15 @@
+{
+  "name": "dao-den-long",
+  "version": "1.0.0",
+  "description": "Đảo Đèn Lồng - Day 12 AI SDLC lab game (Night 1)",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "play": "node tools/serve.js",
+    "headless": "node src/headless.js",
+    "test": "node --test",
+    "verify": "node tools/verify.js"
+  }
+}
