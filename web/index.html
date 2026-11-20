@@ -18,6 +18,10 @@
     .flame.off { background: #3a3d52; box-shadow: none; }
     #clock { top: 14px; left: 50%; transform: translateX(-50%); padding: 6px 18px; font: 700 28px/1.2 ui-monospace, monospace; letter-spacing: .05em; }
     #clock.danger { color: var(--danger); animation: blink 1s steps(2) infinite; }
+    /* Ticket-03 colour-blind palette: warnings white + a warning icon */
+    body.cb { --danger: #FFFFFF; }
+    body.cb #clock.danger::before { content: "⚠ "; }
+    #carry-num { margin-left: 8px; font-weight: 700; color: var(--core); align-self: center; }
     @keyframes blink { 50% { opacity: .35; } }
     #topright { top: 16px; right: 16px; padding: 8px 16px; text-align: right; }
     #lanterns { font-weight: 600; } #score { font-size: 24px; font-weight: 800; color: var(--gold); }
@@ -77,6 +81,7 @@
         <tr><td><kbd>Shift</kbd></td><td>Lướt</td></tr>
         <tr><td><kbd>E</kbd></td><td>Nạp ánh sáng vào đèn</td></tr>
         <tr><td><kbd>F</kbd></td><td>Tỏa Sáng (3 đom đóm)</td></tr>
+        <tr><td colspan="2" style="opacity:.8">Đèn cạn dầu dần: châm dầu bằng <kbd>E</kbd>, giữ đủ đèn sáng tới bình minh.</td></tr>
         <tr><td><kbd>←</kbd><kbd>→</kbd> / kéo chuột</td><td>Xoay camera</td></tr>
         <tr><td><kbd>Esc</kbd> / <kbd>P</kbd></td><td>Tạm dừng</td></tr>
       </table>
@@ -122,6 +127,7 @@
     <div class="card panel">
       <h2>Cài đặt</h2>
       <label class="set">Âm lượng <input type="range" id="set-volume" min="0" max="100"><span id="set-volume-v"></span></label>
+      <label class="set">Bảng màu dễ phân biệt <input type="checkbox" id="set-cb"><span></span></label>
       <label class="set">Độ nhạy chuột <input type="range" id="set-sens" min="10" max="300"><span id="set-sens-v"></span></label>
       <div class="btns"><button data-act="settings-back">Xong</button></div>
     </div>
