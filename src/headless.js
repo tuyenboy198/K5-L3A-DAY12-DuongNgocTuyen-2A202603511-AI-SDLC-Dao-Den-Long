@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Headless runner, Test Contract v1.0:
-// node src/headless.js --seed <int> --night 1 [--scenario f] [--inputs f] --ticks <int> --out f.jsonl [--snapshot-every n]
+// Headless runner, Test Contract v1.1:
+// node src/headless.js --seed <int> --night <1|2|3> [--scenario f] [--inputs f] --ticks <int> --out f.jsonl [--snapshot-every n]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createGame, step, snapshot } from './sim/game.js';
+import { MAPS } from './sim/maps.js';
 import { FormatError, parseJson, validateScenario, validateInputs, inputTimeline } from './io.js';
 
 class UsageError extends Error {}
@@ -25,7 +26,7 @@ function parseArgs(argv) {
   };
   const opts = { seed: int('seed'), night: int('night', '1'), ticks: int('ticks'), every: int('snapshot-every', '10'), out: a.out, scenario: a.scenario, inputs: a.inputs };
   if (!opts.out) throw new UsageError('--out is required');
-  if (opts.night !== 1) throw new UsageError(`night ${opts.night} is not available (only night 1)`);
+  if (!MAPS[opts.night]) throw new UsageError(`--night must be 1, 2 or 3 (got ${opts.night})`);
   if (opts.ticks < 0) throw new UsageError('--ticks must be >= 0');
   if (opts.every < 1) throw new UsageError('--snapshot-every must be >= 1');
   return opts;
@@ -37,10 +38,10 @@ const readJson = (file, what) => {
   return parseJson(text, what);
 };
 
-export function run(opts) {
-  const scenario = opts.scenario ? validateScenario(readJson(opts.scenario, 'scenario'), ['L1', 'L2', 'L3', 'L4', 'L5']) : {};
+function run(opts) {
+  const scenario = opts.scenario ? validateScenario(readJson(opts.scenario, 'scenario'), MAPS[opts.night].lanterns.map((L) => L.id)) : {};
   const frames = opts.inputs ? validateInputs(readJson(opts.inputs, 'inputs')) : [];
-  const g = createGame({ seed: opts.seed, scenario });
+  const g = createGame({ seed: opts.seed, night: opts.night, scenario });
   const input = inputTimeline(frames);
   const lines = [JSON.stringify(snapshot(g))];
   for (let k = 0; k < opts.ticks && g.state === 'playing'; k++) {

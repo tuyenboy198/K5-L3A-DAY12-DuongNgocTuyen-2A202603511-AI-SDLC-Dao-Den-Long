@@ -1,43 +1,51 @@
-// Single source of truth for gameplay numbers. tests/contract.test.js checks that
-// game.contract.json declares exactly these values.
+// Ticket-02 standard numbers. TUNING is what game.contract.json declares (tests/contract.test.js
+// checks they are identical); RULES are the other standard numbers the contract does not list.
 export const TPS = 60;
 
 export const TUNING = {
   player_speed: 6,
   carry_capacity: 10,
-  lantern_cost: 5,
+  lantern_cost: 10,
   lantern_count_night1: 5,
   pickup_radius: 1,
-  interact_radius: 2.5,
-  pulse_cost: 2,
-  pulse_radius: 6,
+  interact_radius: 2,
+  pulse_cost: 3,
+  pulse_radius: 5,
   night1_duration_s: 300,
+  night2_duration_s: 330,
+  night3_duration_s: 360,
   flames: 3,
-  invuln_s: 2,
+  invuln_s: 1.5,
   hit_drop_ratio: 0.5,
-  pulse_stun_s: 3,
+  pulse_stun_s: 2,
   pulse_push_m: 4,
-  pulse_cooldown_s: 1.5,
-  safe_radius: 5,
-  shade_speed: 3.5,
+  pulse_cooldown_s: 3,
+  safe_radius: 6,
+  shade_speed: 4,
   shade_hit_radius: 1,
-  fall_enabled: false,
-  score: { per_mote: 10, per_lantern: 100, per_stun: 25, per_second_left: 2, per_flame_left: 50 },
+  dash_speed: 14,
+  dash_duration_s: 0.2,
+  dash_cooldown_s: 1.5,
+  fall_enabled: true,
+  score: { per_mote: 10, per_lantern: 100, per_stun: 5, per_second_left: 2, per_flame_left: 50 },
 };
 
-// Internal numbers the contract does not ask for (documented in docs/notes/phase-1.md).
-export const WORLD = {
-  islandRadius: 48,      // player cannot walk past this (fall_enabled = false)
-  lanternRing: 25,       // L1..L5 evenly spaced on this circle, L1 at (0,0,25)
-  jumpSpeed: 6,          // m/s
-  gravity: 20,           // m/s^2
-  shadeY: 1,             // spawned shade center height
-  moteCount: 30,         // random motes at start, and the cap for respawns
-  moteRespawnTicks: 180, // one new mote every 3 s while below the cap
-  moteMinR: 3, moteMaxR: 44,
-  firstShadeTick: 300,   // first random shade at 5 s
-  shadeEveryTicks: 1200, // then one every 20 s
-  maxShades: 6,
-  shadeSpawnR: 40,
-  shadeMinPlayerDist: 15,
+export const RULES = {
+  jumpSpeed: 7, gravity: 20,
+  pickupDy: 1.5, hitDy: 1.5, interactDy: 1.5,
+  pulseCenterY: 0.8, pushTicks: 15,
+  shadeY: 1, shadeDetect: 12, shadeLose: 18, shadeWanderSpeed: 1.5,
+  spawningTicks: 30, recoilTicks: 60, recoilDist: 2, expelTicks: 30,
+  firstShadeTick: 300, firstShadeCount: 2,
+  dropRingMin: 1.5, dropRingMax: 2.5, dropTtl: 480,
+  fallY: -10, respawnWait: 60, respawnInvuln: 90,
+  moteStart: 20, moteCap: 30, moteEvery: 240,
+  charmTicks: 600, charmSpeed: 7.2, charmRespawn: 2700,
+  drifterSpeed: 7, drifterIdleSpeed: 2, drifterMax: 2, drifterEvery: 1200, drifterY: 1.2,
+  drifterChaseCarry: 5, drifterChaseDist: 15, drifterHit: 1.2, drifterSteal: 3, drifterFleeTicks: 240, drifterDropVanish: 120,
+  windEvery: 1800, windTicks: 300, windWarn: 120, windSpeed: 2,
+  stepUp: 0.35, padRadius: 1,
 };
+
+export const SHADE_STATES = ['spawning', 'wander', 'chase', 'recoil', 'stunned'];
+export const DRIFTER_STATES = ['idle', 'chase', 'flee', 'removed'];

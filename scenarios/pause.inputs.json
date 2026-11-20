@@ -1,0 +1,20 @@
+{
+  "frames": [
+    {
+      "tick": 10,
+      "pause": true
+    },
+    {
+      "tick": 11,
+      "pause": false
+    },
+    {
+      "tick": 30,
+      "pause": true
+    },
+    {
+      "tick": 31,
+      "pause": false
+    }
+  ]
+}

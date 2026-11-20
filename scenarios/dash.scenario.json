@@ -1,0 +1,34 @@
+{
+  "_why": "Dash at tick 0 fires (event tick 1). Press at tick 30 is inside the 90-tick cooldown -> ignored. Press at tick 90 fires again (tick 91).",
+  "night": 1,
+  "seed": 1,
+  "ticks": 100,
+  "random_motes": false,
+  "random_shades": false,
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 1,
+        "name": "dash",
+        "data": {}
+      },
+      {
+        "tick": 91,
+        "name": "dash",
+        "data": {}
+      }
+    ],
+    "end": {
+      "ticks": 100,
+      "state": "playing",
+      "score": 0
+    }
+  }
+}

@@ -29,9 +29,30 @@ test('basic run: snapshot at tick 0, every 10 ticks, end line last, exit 0', () 
   assert.deepEqual(snaps.map((s) => s.tick), [0, 10, 20, 30, 40, 50]);
   assert.deepEqual(r.lines.at(-1), { type: 'end', ticks: 50, state: 'playing', score: 0 });
   const s = snaps[0];
-  assert.deepEqual(Object.keys(s).slice(0, 10), ['type', 'tick', 'sim_tick', 'state', 'time_left_s', 'score', 'player', 'lanterns', 'shades', 'motes_active']);
-  assert.deepEqual(s.player, { pos: [0, 0, 0], flames: contract.tuning.flames, carried: 0 });
+  for (const k of ['type', 'tick', 'sim_tick', 'night', 'state', 'time_left_s', 'score', 'wind', 'player', 'lanterns', 'shades', 'motes_active', 'motes', 'drifters', 'charms']) assert.ok(k in s, k);
+  assert.deepEqual(s.player, { pos: [0, 0, 0], vel: [0, 0, 0], grounded: true, flames: contract.tuning.flames, carried: 0, invuln: false, dash_cd_s: 0, pulse_cd_s: 0, charm_s: 0 });
+  assert.deepEqual(s.wind, { active: false, dir_deg: 0 });
+  assert.equal(s.night, 1);
   assert.equal(s.lanterns.length, 5);
+  assert.equal(s.motes.length, 20);
+  for (const m of s.motes) assert.deepEqual(Object.keys(m), ['id', 'pos', 'kind', 'ttl_s']);
+});
+
+test('--night 2 and 3 run with their own lanterns; --night 4 is rejected', () => {
+  assert.equal(headless(['--seed', '1', '--night', '2', '--ticks', '5']).lines[0].lanterns.length, 6);
+  const n3 = headless(['--seed', '1', '--night', '3', '--ticks', '5']).lines[0];
+  assert.equal(n3.lanterns.length, 7);
+  assert.deepEqual(n3.charms.map((c) => c.id), ['C1', 'C2']);
+  const bad = headless(['--seed', '1', '--night', '4', '--ticks', '5']);
+  assert.notEqual(bad.code, 0);
+  assert.match(bad.stderr, /night/);
+});
+
+test('a full night 3 (21600 ticks) finishes well under 30 s', () => {
+  const t0 = Date.now();
+  const r = headless(['--seed', '9', '--night', '3', '--ticks', '21600']);
+  assert.equal(r.code, 0);
+  assert.ok(Date.now() - t0 < 30000);
 });
 
 test('--snapshot-every is honored', () => {
@@ -79,6 +100,8 @@ for (const [label, body] of [
   ['invalid JSON scenario', 'nope'],
   ['unknown lantern id', { lanterns: [{ id: 'L9', lit: true }] }],
   ['player.pos wrong type', { player: { pos: 'origin' } }],
+  ['unknown shade state', { shades: [{ pos: [1, 0, 1], state: 'angry' }] }],
+  ['drifters not an array', { drifters: {} }],
 ]) {
   test(`malformed scenario (${label}) -> exit 2`, () => {
     assert.equal(headless(['--seed', '1', '--night', '1', '--scenario', tmpJson(body), '--ticks', '10']).code, 2);
@@ -96,7 +119,7 @@ const SC = join(ROOT, 'scenarios');
 for (const f of readdirSync(SC).filter((f) => f.endsWith('.scenario.json'))) {
   test(`scenario ${f}`, () => {
     const spec = JSON.parse(readFileSync(join(SC, f), 'utf8'));
-    const args = ['--seed', String(spec.seed ?? 1), '--night', '1', '--scenario', join(SC, f), '--ticks', String(spec.ticks)];
+    const args = ['--seed', String(spec.seed ?? 1), '--night', String(spec.night ?? 1), '--scenario', join(SC, f), '--ticks', String(spec.ticks)];
     const inputs = join(SC, f.replace('.scenario.json', '.inputs.json'));
     try { readFileSync(inputs); args.push('--inputs', inputs); } catch {}
     const r = headless(args);

@@ -1,0 +1,43 @@
+{
+  "_why": "10 sim steps, pause pressed at tick 10 (paused event tick 11, no sim), resume at tick 30 (resumed tick 31, that step simulates). Dawn needs 60 sim steps -> steps 30..79 -> game_over tick 80.",
+  "night": 1,
+  "seed": 1,
+  "ticks": 500,
+  "random_motes": false,
+  "random_shades": false,
+  "time_left_s": 1,
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 11,
+        "name": "paused",
+        "data": {}
+      },
+      {
+        "tick": 31,
+        "name": "resumed",
+        "data": {}
+      },
+      {
+        "tick": 80,
+        "name": "game_over",
+        "data": {
+          "result": "lost",
+          "reason": "dawn"
+        }
+      }
+    ],
+    "end": {
+      "ticks": 80,
+      "state": "lost",
+      "score": 0
+    }
+  }
+}

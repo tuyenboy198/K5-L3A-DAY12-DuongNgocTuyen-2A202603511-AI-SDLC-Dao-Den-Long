@@ -1,0 +1,50 @@
+{
+  "_why": "Night 2 charm C1 at (35,0,0). Start x=33.45 walking +X 0.1/tick -> dist <= 1 first at tick 6 (x=34.05). With the charm, dash has no cooldown: dash at 10 fires (tick 11), press at 15 is during the 12-tick dash -> ignored, press at 30 fires (tick 31).",
+  "night": 2,
+  "seed": 1,
+  "ticks": 40,
+  "player": {
+    "pos": [
+      33.45,
+      0,
+      0
+    ]
+  },
+  "random_motes": false,
+  "random_shades": false,
+  "random_drifters": false,
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 2
+        }
+      },
+      {
+        "tick": 6,
+        "name": "charm_picked",
+        "data": {
+          "charm_id": "C1",
+          "charm_ticks": 600
+        }
+      },
+      {
+        "tick": 11,
+        "name": "dash",
+        "data": {}
+      },
+      {
+        "tick": 31,
+        "name": "dash",
+        "data": {}
+      }
+    ],
+    "end": {
+      "ticks": 40,
+      "state": "playing",
+      "score": 0
+    }
+  }
+}

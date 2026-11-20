@@ -1,0 +1,32 @@
+{
+  "_why": "Night 2 pad at (20,0,18): vy 14, 24 m/s toward island B centre. Flight ~1.4 s (~33.5 m) lands inside island B, so no fall event.",
+  "night": 2,
+  "seed": 1,
+  "ticks": 120,
+  "player": {
+    "pos": [
+      20,
+      0,
+      18
+    ]
+  },
+  "random_motes": false,
+  "random_shades": false,
+  "random_drifters": false,
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 2
+        }
+      }
+    ],
+    "end": {
+      "ticks": 120,
+      "state": "playing",
+      "score": 0
+    }
+  }
+}

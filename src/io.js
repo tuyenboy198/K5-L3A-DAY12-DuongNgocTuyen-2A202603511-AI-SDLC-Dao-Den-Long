@@ -1,6 +1,7 @@
-// Parsing + validation of scenario / inputs files (trust boundary). Any problem throws
-// FormatError, which the CLI maps to exit code 2.
+// Parsing + validation of scenario / inputs files (trust boundary, Test Contract v1.1). Any problem
+// throws FormatError, which the CLI maps to exit code 2.
 import { DEFAULT_INPUT } from './sim/game.js';
+import { SHADE_STATES, DRIFTER_STATES, RULES } from './sim/config.js';
 
 export class FormatError extends Error {}
 
@@ -10,6 +11,18 @@ const num = (v, where) => (typeof v === 'number' && Number.isFinite(v) ? v : fai
 const vec = (v, n, where) => (Array.isArray(v) && v.length === n ? v.map((x, i) => num(x, `${where}[${i}]`)) : fail(`${where}: expected an array of ${n} numbers`));
 const bool = (v, where) => (typeof v === 'boolean' ? v : fail(`${where}: expected a boolean`));
 const count = (v, where) => (Number.isInteger(v) && v >= 0 ? v : fail(`${where}: expected a non-negative integer`));
+const oneOf = (v, list, where) => (list.includes(v) ? v : fail(`${where}: expected one of ${list.join(', ')}`));
+const arr = (v, where) => (Array.isArray(v) ? v : fail(`${where}: expected an array`));
+const opt = (o, k, fn, where) => (o[k] === undefined ? undefined : fn(o[k], `${where}.${k}`));
+const strip = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+function uniqueIds(list, where) {
+  const seen = new Set();
+  for (const [i, e] of list.entries()) {
+    if (e.id === undefined) continue;
+    if (typeof e.id !== 'string' || seen.has(e.id)) fail(`${where}[${i}].id: expected a unique string`);
+    seen.add(e.id);
+  }
+}
 
 export function parseJson(text, what) {
   try { return JSON.parse(text); } catch (e) { return fail(`${what}: invalid JSON (${e.message})`); }
@@ -20,38 +33,56 @@ export function validateScenario(s, lanternIds) {
   const out = {};
   if (s.player !== undefined) {
     if (!isObj(s.player)) fail('scenario.player: expected an object');
-    out.player = {};
-    if (s.player.pos !== undefined) out.player.pos = vec(s.player.pos, 3, 'scenario.player.pos');
-    if (s.player.carried !== undefined) out.player.carried = count(s.player.carried, 'scenario.player.carried');
-    if (s.player.flames !== undefined) out.player.flames = count(s.player.flames, 'scenario.player.flames');
-  }
-  for (const k of ['random_motes', 'random_shades']) if (s[k] !== undefined) out[k] = bool(s[k], `scenario.${k}`);
-  if (s.motes !== undefined) {
-    if (!Array.isArray(s.motes)) fail('scenario.motes: expected an array');
-    out.motes = s.motes.map((m, i) => vec(isObj(m) ? m.pos : m, 3, `scenario.motes[${i}]`));
-  }
-  if (s.shades !== undefined) {
-    if (!Array.isArray(s.shades)) fail('scenario.shades: expected an array');
-    const seen = new Set();
-    out.shades = s.shades.map((sh, i) => {
-      if (!isObj(sh)) fail(`scenario.shades[${i}]: expected an object`);
-      const o = { pos: vec(sh.pos, 3, `scenario.shades[${i}].pos`) };
-      if (sh.id !== undefined) {
-        if (typeof sh.id !== 'string' || seen.has(sh.id)) fail(`scenario.shades[${i}].id: expected a unique string`);
-        seen.add((o.id = sh.id));
-      }
-      return o;
+    const w = 'scenario.player';
+    out.player = strip({
+      pos: opt(s.player, 'pos', (v, x) => vec(v, 3, x), w),
+      carried: opt(s.player, 'carried', count, w),
+      flames: opt(s.player, 'flames', count, w),
+      invuln_ticks: opt(s.player, 'invuln_ticks', count, w),
+      dash_cd_ticks: opt(s.player, 'dash_cd_ticks', count, w),
+      pulse_cd_ticks: opt(s.player, 'pulse_cd_ticks', count, w),
+      charm_ticks: opt(s.player, 'charm_ticks', count, w),
     });
   }
+  for (const k of ['random_motes', 'random_shades', 'random_drifters', 'wind_enabled']) if (s[k] !== undefined) out[k] = bool(s[k], `scenario.${k}`);
+  if (s.motes !== undefined) {
+    out.motes = arr(s.motes, 'scenario.motes').map((m, i) => {
+      const w = `scenario.motes[${i}]`;
+      if (!isObj(m)) return { pos: vec(m, 3, w), kind: 'random' };
+      const kind = opt(m, 'kind', (v, x) => oneOf(v, ['random', 'dropped'], x), w) ?? 'random';
+      const ttl = opt(m, 'ttl_ticks', count, w) ?? (m.ttl_s !== undefined ? Math.round(num(m.ttl_s, `${w}.ttl_s`) * 60) : RULES.dropTtl);
+      return { pos: vec(m.pos, 3, `${w}.pos`), kind, ttl };
+    });
+  }
+  if (s.shades !== undefined) {
+    out.shades = arr(s.shades, 'scenario.shades').map((sh, i) => {
+      const w = `scenario.shades[${i}]`;
+      if (!isObj(sh)) fail(`${w}: expected an object`);
+      return strip({ pos: vec(sh.pos, 3, `${w}.pos`), id: sh.id, state: opt(sh, 'state', (v, x) => oneOf(v, SHADE_STATES, x), w), state_ticks_left: opt(sh, 'state_ticks_left', count, w) });
+    });
+    uniqueIds(out.shades, 'scenario.shades');
+  }
+  if (s.drifters !== undefined) {
+    out.drifters = arr(s.drifters, 'scenario.drifters').map((d, i) => {
+      const w = `scenario.drifters[${i}]`;
+      if (!isObj(d)) fail(`${w}: expected an object`);
+      return strip({ pos: vec(d.pos, 3, `${w}.pos`), id: d.id, state: opt(d, 'state', (v, x) => oneOf(v, DRIFTER_STATES, x), w), stolen: opt(d, 'stolen', count, w), state_ticks_left: opt(d, 'state_ticks_left', count, w) });
+    });
+    uniqueIds(out.drifters, 'scenario.drifters');
+  }
+  if (s.charms !== undefined) {
+    out.charms = arr(s.charms, 'scenario.charms').map((c, i) => {
+      const w = `scenario.charms[${i}]`;
+      if (!isObj(c)) fail(`${w}: expected an object`);
+      return strip({ pos: vec(c.pos, 3, `${w}.pos`), id: c.id, available: opt(c, 'available', bool, w), respawn_ticks: opt(c, 'respawn_ticks', count, w) });
+    });
+    uniqueIds(out.charms, 'scenario.charms');
+  }
   if (s.lanterns !== undefined) {
-    if (!Array.isArray(s.lanterns)) fail('scenario.lanterns: expected an array');
-    out.lanterns = s.lanterns.map((l, i) => {
-      if (!isObj(l) || !lanternIds.includes(l.id)) fail(`scenario.lanterns[${i}].id: expected one of ${lanternIds.join(', ')}`);
-      const o = { id: l.id };
-      if (l.pos !== undefined) o.pos = vec(l.pos, 3, `scenario.lanterns[${i}].pos`);
-      if (l.deposited !== undefined) o.deposited = count(l.deposited, `scenario.lanterns[${i}].deposited`);
-      if (l.lit !== undefined) o.lit = bool(l.lit, `scenario.lanterns[${i}].lit`);
-      return o;
+    out.lanterns = arr(s.lanterns, 'scenario.lanterns').map((l, i) => {
+      const w = `scenario.lanterns[${i}]`;
+      if (!isObj(l) || !lanternIds.includes(l.id)) fail(`${w}.id: expected one of ${lanternIds.join(', ')}`);
+      return strip({ id: l.id, pos: opt(l, 'pos', (v, x) => vec(v, 3, x), w), deposited: opt(l, 'deposited', count, w), lit: opt(l, 'lit', bool, w) });
     });
   }
   if (s.time_left_s !== undefined) {
@@ -74,7 +105,7 @@ export function validateInputs(s) {
     const o = { tick };
     if (f.move !== undefined) o.move = vec(f.move, 2, `${w}.move`).map((x) => Math.max(-1, Math.min(1, x)));
     if (f.cam_yaw_deg !== undefined) o.cam_yaw_deg = num(f.cam_yaw_deg, `${w}.cam_yaw_deg`);
-    for (const b of ['jump', 'interact', 'pulse', 'dash']) if (f[b] !== undefined) o[b] = bool(f[b], `${w}.${b}`);
+    for (const b of ['jump', 'interact', 'pulse', 'dash', 'pause']) if (f[b] !== undefined) o[b] = bool(f[b], `${w}.${b}`);
     return o;
   });
 }

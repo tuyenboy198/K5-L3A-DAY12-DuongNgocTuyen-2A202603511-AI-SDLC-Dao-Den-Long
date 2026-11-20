@@ -1,0 +1,42 @@
+{
+  "_why": "Night 1 island r=40. From x=39.45 walking +X, x=40.05 at step 5 -> off the edge. Falling y = -n(n+1)/360 < -10 first at n=60 -> step 65 -> player_hit by fall at tick 66 (flames 2, lost all 4). Respawn after 60 ticks at (0,0,0).",
+  "night": 1,
+  "seed": 1,
+  "ticks": 130,
+  "player": {
+    "pos": [
+      39.45,
+      0,
+      0
+    ],
+    "carried": 4
+  },
+  "random_motes": false,
+  "random_shades": false,
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 66,
+        "name": "player_hit",
+        "data": {
+          "by": "fall",
+          "flames": 2,
+          "dropped": 0,
+          "lost": 4
+        }
+      }
+    ],
+    "end": {
+      "ticks": 130,
+      "state": "playing",
+      "score": 0
+    }
+  }
+}

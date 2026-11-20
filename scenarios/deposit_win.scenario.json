@@ -1,23 +1,140 @@
 {
-  "_why": "Walk +Z at 0.1 m/tick picking 5 motes (pickup when z >= mote_z - 1 -> ticks 1,6,11,16,21), stop at z=23 (2 m from L1 <= interact 2.5), interact at tick 31 -> deposit 5, lit, win. Score 5*10 + 100 + floor(300-32/60)=299*2 + 3*50 = 898.",
+  "_why": "v1.1: lantern_cost 10, L1 pre-filled with 5. Walk +Z at 0.1 m/tick picking 5 motes (z >= mote_z - 1 -> ticks 1,6,11,16,21); move released at tick 31 -> z = 23.1 (1.9 m from L1 <= 2.0). Interact at 32 -> tick 33: deposit 5 (=10), lit, won. Score: 5 deposited x10 + 100 + floor(300 - 33/60)=299 x2 + 3x50 = 898.",
+  "night": 1,
   "seed": 1,
   "ticks": 200,
-  "player": { "pos": [0, 0, 20], "carried": 0 },
+  "player": {
+    "pos": [
+      0,
+      0,
+      20
+    ],
+    "carried": 0
+  },
   "random_motes": false,
   "random_shades": false,
-  "motes": [[0, 0, 21.05], [0, 0, 21.55], [0, 0, 22.05], [0, 0, 22.55], [0, 0, 23.05]],
-  "lanterns": [{ "id": "L2", "lit": true }, { "id": "L3", "lit": true }, { "id": "L4", "lit": true }, { "id": "L5", "lit": true }],
+  "motes": [
+    [
+      0,
+      0,
+      21.05
+    ],
+    [
+      0,
+      0,
+      21.55
+    ],
+    [
+      0,
+      0,
+      22.05
+    ],
+    [
+      0,
+      0,
+      22.55
+    ],
+    [
+      0,
+      0,
+      23.05
+    ]
+  ],
+  "lanterns": [
+    {
+      "id": "L1",
+      "deposited": 5
+    },
+    {
+      "id": "L2",
+      "lit": true
+    },
+    {
+      "id": "L3",
+      "lit": true
+    },
+    {
+      "id": "L4",
+      "lit": true
+    },
+    {
+      "id": "L5",
+      "lit": true
+    }
+  ],
   "expect": {
     "events": [
-      { "tick": 1, "name": "mote_picked", "data": { "carried": 1 } },
-      { "tick": 6, "name": "mote_picked", "data": { "carried": 2 } },
-      { "tick": 11, "name": "mote_picked", "data": { "carried": 3 } },
-      { "tick": 16, "name": "mote_picked", "data": { "carried": 4 } },
-      { "tick": 21, "name": "mote_picked", "data": { "carried": 5 } },
-      { "tick": 32, "name": "deposit", "data": { "lantern_id": "L1", "amount": 5, "deposited": 5 } },
-      { "tick": 32, "name": "lantern_lit", "data": { "lantern_id": "L1" } },
-      { "tick": 32, "name": "game_over", "data": { "result": "won", "reason": "all_lit" } }
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 1,
+        "name": "mote_picked",
+        "data": {
+          "carried": 1
+        }
+      },
+      {
+        "tick": 6,
+        "name": "mote_picked",
+        "data": {
+          "carried": 2
+        }
+      },
+      {
+        "tick": 11,
+        "name": "mote_picked",
+        "data": {
+          "carried": 3
+        }
+      },
+      {
+        "tick": 16,
+        "name": "mote_picked",
+        "data": {
+          "carried": 4
+        }
+      },
+      {
+        "tick": 21,
+        "name": "mote_picked",
+        "data": {
+          "carried": 5
+        }
+      },
+      {
+        "tick": 33,
+        "name": "deposit",
+        "data": {
+          "lantern_id": "L1",
+          "amount": 5,
+          "deposited": 10
+        }
+      },
+      {
+        "tick": 33,
+        "name": "lantern_lit",
+        "data": {
+          "lantern_id": "L1"
+        }
+      },
+      {
+        "tick": 33,
+        "name": "game_over",
+        "data": {
+          "result": "won",
+          "reason": "all_lit"
+        }
+      }
     ],
-    "end": { "ticks": 32, "state": "won", "score": 898 }
+    "end": {
+      "ticks": 33,
+      "state": "won",
+      "score": 898
+    }
   }
 }

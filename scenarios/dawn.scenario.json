@@ -1,12 +1,33 @@
 {
-  "_why": "time_left_s 2 -> dawn after 120 steps.",
+  "_why": "time_left_s 2 -> dawn after 120 sim steps.",
+  "night": 1,
   "seed": 1,
   "ticks": 1000,
   "random_motes": false,
   "random_shades": false,
   "time_left_s": 2,
   "expect": {
-    "events": [ { "tick": 120, "name": "game_over", "data": { "result": "lost", "reason": "dawn" } } ],
-    "end": { "ticks": 120, "state": "lost", "score": 0 }
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 120,
+        "name": "game_over",
+        "data": {
+          "result": "lost",
+          "reason": "dawn"
+        }
+      }
+    ],
+    "end": {
+      "ticks": 120,
+      "state": "lost",
+      "score": 0
+    }
   }
 }

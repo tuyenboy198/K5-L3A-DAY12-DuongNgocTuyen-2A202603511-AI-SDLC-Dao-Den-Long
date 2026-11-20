@@ -1,0 +1,67 @@
+{
+  "_why": "Night 2. Mây carries 6 (>= 5), drifter 3 m away -> chase at 7/60 m/tick; within 1.2 after ceil(1.8/0.11667)=16 steps -> steal min(3,6)=3 at tick 16, flee. Pulse at tick 20: drifter at 1.6 m (3D 1.65 <= 5) fleeing with loot -> drops 3 motes (drifter_drop), carried 0. Pulse event first (no shades -> []).",
+  "night": 2,
+  "seed": 1,
+  "ticks": 150,
+  "player": {
+    "pos": [
+      0,
+      0,
+      0
+    ],
+    "carried": 6
+  },
+  "random_motes": false,
+  "random_shades": false,
+  "random_drifters": false,
+  "drifters": [
+    {
+      "id": "D1",
+      "pos": [
+        3,
+        1.2,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 2
+        }
+      },
+      {
+        "tick": 16,
+        "name": "drifter_steal",
+        "data": {
+          "drifter_id": "D1",
+          "amount": 3,
+          "carried": 3
+        }
+      },
+      {
+        "tick": 21,
+        "name": "pulse",
+        "data": {
+          "stunned_ids": []
+        }
+      },
+      {
+        "tick": 21,
+        "name": "drifter_drop",
+        "data": {
+          "drifter_id": "D1",
+          "amount": 3
+        }
+      }
+    ],
+    "end": {
+      "ticks": 150,
+      "state": "playing",
+      "score": 0
+    }
+  }
+}
