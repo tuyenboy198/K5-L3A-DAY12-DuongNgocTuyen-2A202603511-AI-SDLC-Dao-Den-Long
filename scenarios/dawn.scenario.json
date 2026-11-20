@@ -1,0 +1,12 @@
+{
+  "_why": "time_left_s 2 -> dawn after 120 steps.",
+  "seed": 1,
+  "ticks": 1000,
+  "random_motes": false,
+  "random_shades": false,
+  "time_left_s": 2,
+  "expect": {
+    "events": [ { "tick": 120, "name": "game_over", "data": { "result": "lost", "reason": "dawn" } } ],
+    "end": { "ticks": 120, "state": "lost", "score": 0 }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "_why": "Shade at 5 m steps 3.5/60 closer (4.942), pulse at tick 0 (dist <= 6) pushes it +4 m to 8.942 and stuns 180 ticks. It resumes at step 181 and needs ceil(7.942/0.05833)=137 steps to reach hit radius 1 -> hit at tick 318, flames 3->2, dropped floor(2*0.5)=1. Score = 1 stun * 25.",
+  "seed": 1,
+  "ticks": 320,
+  "player": { "pos": [0, 0, 0], "carried": 4 },
+  "random_motes": false,
+  "random_shades": false,
+  "shades": [{ "id": "S1", "pos": [5, 1, 0] }],
+  "expect": {
+    "events": [
+      { "tick": 1, "name": "pulse", "data": { "stunned_ids": ["S1"] } },
+      { "tick": 318, "name": "player_hit", "data": { "by": "shade", "flames": 2, "dropped": 1 } }
+    ],
+    "end": { "ticks": 320, "state": "playing", "score": 25 }
+  }
+}
