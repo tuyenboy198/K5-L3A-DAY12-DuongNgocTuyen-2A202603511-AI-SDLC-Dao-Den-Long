@@ -17,15 +17,17 @@ const tests = sh(process.execPath, ['--test', '--test-reporter=spec']);
 const summary = (tests.stdout.match(/^ℹ (tests|pass|fail) \d+$/gm) ?? []).join(', ');
 
 const tmp = mkdtempSync(join(tmpdir(), 'ddl-verify-'));
-const runs = [42, 42, 43].map((seed, i) => {
+const runs = [[1, 42], [1, 42], [1, 43], [2, 42], [2, 42], [3, 42], [3, 42]].map(([night, seed], i) => {
   const out = join(tmp, `run${i}.jsonl`);
   const t0 = performance.now();
-  const r = sh(process.execPath, ['src/headless.js', '--seed', String(seed), '--night', '1', '--inputs', 'scenarios/deposit_win.inputs.json', '--ticks', '18000', '--out', out]);
+  const r = sh(process.execPath, ['src/headless.js', '--seed', String(seed), '--night', String(night), '--inputs', 'scenarios/deposit_win.inputs.json', '--ticks', '21600', '--out', out]);
   const ms = performance.now() - t0;
   const body = readFileSync(out);
-  return { seed, code: r.status, ms: ms.toFixed(0), sha: createHash('sha256').update(body).digest('hex').slice(0, 16), lines: body.toString().trim().split('\n').length };
+  return { night, seed, code: r.status, ms: ms.toFixed(0), sha: createHash('sha256').update(body).digest('hex').slice(0, 16), lines: body.toString().trim().split('\n').length };
 });
-const deterministic = runs[0].sha === runs[1].sha && runs[0].sha !== runs[2].sha;
+const deterministic = runs[0].sha === runs[1].sha && runs[0].sha !== runs[2].sha && runs[3].sha === runs[4].sha && runs[5].sha === runs[6].sha;
+const slowest = Math.max(...runs.map((r) => Number(r.ms)));
+const fastEnough = runs.every((r) => r.code === 0) && slowest < 30000;
 const commit = sh('git', ['rev-parse', '--short', 'HEAD']).stdout.trim();
 const dirty = sh('git', ['status', '--porcelain', '--', 'src', 'tests', 'scenarios', 'game.contract.json']).stdout.trim() ? ' (+ uncommitted changes)' : '';
 
@@ -53,14 +55,18 @@ ${tests.stdout.replace(/\x1b\[[0-9;]*m/g, '').trim()}
 
 ## 2. Determinism of the headless CLI: ${deterministic ? 'PASS' : 'FAIL'}
 
-Same command run twice with seed 42 and once with seed 43 (inputs \`scenarios/deposit_win.inputs.json\`, 18000 ticks, default random night).
+Each night run with \`--ticks 21600\` (the contract's full-night maximum; it stops earlier when the night ends), inputs \`scenarios/deposit_win.inputs.json\`, default random entities.
 
-| seed | exit | lines | sha256 (16) | wall ms |
-|---|---|---|---|---|
-${runs.map((r) => `| ${r.seed} | ${r.code} | ${r.lines} | \`${r.sha}\` | ${r.ms} |`).join('\n')}
+| night | seed | exit | lines | sha256 (16) | wall ms |
+|---|---|---|---|---|---|
+${runs.map((r) => `| ${r.night} | ${r.seed} | ${r.code} | ${r.lines} | \`${r.sha}\` | ${r.ms} |`).join('\n')}
 
-Expected: seed 42 twice = identical hash; seed 43 = different hash.
+Expected: same night + seed twice = identical hash; night 1 seed 43 differs from seed 42.
+
+## 3. A full night headless within 30 s: ${fastEnough ? 'PASS' : 'FAIL'}
+
+Slowest run above: ${slowest} ms (limit 30000 ms).
 `;
 writeFileSync(join(outDir, 'verify-report.md'), report);
-console.log(`tests: ${tests.status === 0 ? 'PASS' : 'FAIL'} (${summary}) | determinism: ${deterministic ? 'PASS' : 'FAIL'} -> docs/proof/${phase}/verify-report.md`);
-process.exit(tests.status === 0 && deterministic ? 0 : 1);
+console.log(`tests: ${tests.status === 0 ? 'PASS' : 'FAIL'} (${summary}) | determinism: ${deterministic ? 'PASS' : 'FAIL'} | full night: ${slowest} ms -> docs/proof/${phase}/verify-report.md`);
+process.exit(tests.status === 0 && deterministic && fastEnough ? 0 : 1);
