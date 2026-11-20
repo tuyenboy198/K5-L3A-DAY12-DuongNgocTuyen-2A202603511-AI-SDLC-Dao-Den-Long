@@ -1,7 +1,7 @@
 # Đảo Đèn Lồng – agent guide
 
 3D game (Three.js, browser) + headless sim (Node), 3 nights. Plain JS ES modules, **zero npm dependencies**.
-Current contract: **Test Contract v1.1** (Ticket-02). Spec summary: `docs/notes/test-contract-v1.1.md`.
+Current contract: **Test Contract v1.2** (Ticket-03 "Đèn cạn dầu" on top of Ticket-02). Spec: `docs/notes/test-contract-v1.2.md`; design: `docs/adr/`.
 
 ## Commands
 - Test everything: `npm test` (node:test; must stay green — a Stop hook blocks finishing when red)
@@ -23,6 +23,8 @@ Current contract: **Test Contract v1.1** (Ticket-02). Spec summary: `docs/notes/
 - Ticket numbers are law: changing `config.js` => update `game.contract.json` (contract.test.js enforces the standard values).
 - Expected values in tests/scenarios are derived by hand from the ticket (write the derivation in `_why`), never copied from program output.
 - Avoid float boundaries in hand-computed scenarios (e.g. start 3.05 m, not 3.0 m) so the expected tick is unambiguous.
+- Lantern fuel is stored in integer 1/60 units (`L.fuel`, 6000 = 100); only round when emitting. Safe zone = `hasZone()` (lit && fuel >= 30): never re-implement that check.
+- A rule change that replaces old behaviour needs: an ADR in `docs/adr/`, a BREAKING entry in CHANGELOG.md, and the old-test table in `docs/notes/phase-N.md`.
 - Map angles: x = r·cos θ, z = r·sin θ. Use the map's `heightAt` for ground; `null` = void (fall).
 - Creative extras must be render-only or disabled in headless; headless output must not change.
 - A ticket that replaces an old rule: edit/remove the old test **with a reason** in `docs/notes/phase-N.md`; never skip silently.
