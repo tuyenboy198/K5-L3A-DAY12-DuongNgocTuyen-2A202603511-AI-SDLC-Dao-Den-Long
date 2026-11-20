@@ -1,5 +1,5 @@
 {
-  "_why": "v1.1: lantern_cost 10, L1 pre-filled with 5. Walk +Z at 0.1 m/tick picking 5 motes (z >= mote_z - 1 -> ticks 1,6,11,16,21); move released at tick 31 -> z = 23.1 (1.9 m from L1 <= 2.0). Interact at 32 -> tick 33: deposit 5 (=10), lit, won. Score: 5 deposited x10 + 100 + floor(300 - 33/60)=299 x2 + 3x50 = 898.",
+  "_why": "Ticket-03 (was deposit_win): lighting every lantern no longer ends the night. Same walk: 5 motes at ticks 1,6,11,16,21, interact at 32 -> tick 33 deposit 5 (=10), lantern_lit relight:false. Score 5 x5 + 100 = 125. Night keeps going until --ticks.",
   "night": 1,
   "seed": 1,
   "ticks": 200,
@@ -119,22 +119,15 @@
         "tick": 33,
         "name": "lantern_lit",
         "data": {
-          "lantern_id": "L1"
-        }
-      },
-      {
-        "tick": 33,
-        "name": "game_over",
-        "data": {
-          "result": "won",
-          "reason": "all_lit"
+          "lantern_id": "L1",
+          "relight": false
         }
       }
     ],
     "end": {
-      "ticks": 33,
-      "state": "won",
-      "score": 898
+      "ticks": 200,
+      "state": "playing",
+      "score": 125
     }
   }
 }

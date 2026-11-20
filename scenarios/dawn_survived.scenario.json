@@ -1,0 +1,47 @@
+{
+  "_why": "Night 1 needs ceil(0.6 x 5) = 3 lit at dawn. L1-L3 lit (fuel 100), 1 s left -> tick 60 won/dawn_survived. Score: 3 x (50 + floor(100 - 1)) + 3 flames x 50 = 447 + 150 = 597.",
+  "night": 1,
+  "seed": 1,
+  "ticks": 500,
+  "random_motes": false,
+  "random_shades": false,
+  "time_left_s": 1,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true
+    },
+    {
+      "id": "L2",
+      "lit": true
+    },
+    {
+      "id": "L3",
+      "lit": true
+    }
+  ],
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 60,
+        "name": "game_over",
+        "data": {
+          "result": "won",
+          "reason": "dawn_survived"
+        }
+      }
+    ],
+    "end": {
+      "ticks": 60,
+      "state": "won",
+      "score": 597
+    }
+  }
+}

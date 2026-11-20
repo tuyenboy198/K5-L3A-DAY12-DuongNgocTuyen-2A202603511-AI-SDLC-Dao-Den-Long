@@ -73,15 +73,18 @@ test('pickup: XZ <= 1.0 and height difference <= 1.5', () => {
   assert.equal(run({ player: { carried: 10 }, motes: [[0, 0, 0.5]] }, [], 1).g.player.carried, 10);
 });
 
-test('lanterns: cost 10, partial deposits remembered, +10 per mote deposited, +100 lit', () => {
+// Ticket-03 changed the score: +5 per mote deposited (was +10), +100 first light.
+test('lanterns: cost 10, partial deposits remembered, +5 per mote deposited, +100 first light', () => {
   const sc = { player: { pos: [0, 0, 23.5], carried: 4 } };
   const a = run(sc, [{ tick: 0, interact: true }], 1);
   assert.deepEqual(named(a.events, 'deposit')[0].data, { lantern_id: 'L1', amount: 4, deposited: 4 });
-  assert.equal(a.g.score, 40);
+  assert.equal(a.g.score, 20);
   const b = run({ ...sc, player: { pos: [0, 0, 23.5], carried: 10 }, lanterns: [{ id: 'L1', deposited: 7 }] }, [{ tick: 0, interact: true }], 1);
   assert.deepEqual(named(b.events, 'deposit')[0].data, { lantern_id: 'L1', amount: 3, deposited: 10 });
+  assert.deepEqual(named(b.events, 'lantern_lit')[0].data, { lantern_id: 'L1', relight: false });
   assert.equal(b.g.player.carried, 7);
-  assert.equal(b.g.score, 30 + 100);
+  assert.equal(b.g.score, 15 + 100);
+  assert.equal(b.snap.lanterns[0].fuel, 100);
 });
 
 test('interact radius 2.0 m; nearest unlit lantern, tie -> lower id', () => {
@@ -301,15 +304,29 @@ test('pause freezes sim_tick, time and cooldowns; snapshots say paused', () => {
   assert.equal(snaps[50].player.dash_cd_s, snaps[5].player.dash_cd_s);
 });
 
-test('win on the exact tick time runs out beats dawn', () => {
-  const sc = { player: { pos: [0, 0, 24], carried: 10 }, lanterns: ['L2', 'L3', 'L4', 'L5'].map((id) => ({ id, lit: true })), time_left_s: 1 / 60 };
-  const { events } = run(sc, [{ tick: 0, interact: true }], 5);
-  assert.deepEqual(events.at(-1).data, { result: 'won', reason: 'all_lit' });
+// Ticket-03 replaced "win as soon as all lanterns are lit" (test removed) with "survive to dawn with >= ceil(0.6 n) lit".
+test('no early win: lighting every lantern does not end the night', () => {
+  const sc = { player: { pos: [0, 0, 24], carried: 10 }, lanterns: ['L2', 'L3', 'L4', 'L5'].map((id) => ({ id, lit: true })) };
+  const { events, snap } = run(sc, [{ tick: 0, interact: true }], 5);
+  assert.equal(named(events, 'game_over').length, 0);
+  assert.equal(snap.state, 'playing');
 });
 
-test('night_start event, flames refill per night, night durations 300/330/360', () => {
+test('dawn: won/dawn_survived with ceil(0.6 n) lit (3/5, 4/6, 5/7), lost/dawn below it; no_flames wins over dawn', () => {
+  const lit = (n, night = 1) => MAPS[night].lanterns.slice(0, n).map((L) => ({ id: L.id, lit: true }));
+  assert.deepEqual(run({ lanterns: lit(3), time_left_s: 1 / 60 }, [], 1).events.at(-1).data, { result: 'won', reason: 'dawn_survived' });
+  assert.deepEqual(run({ lanterns: lit(2), time_left_s: 1 / 60 }, [], 1).events.at(-1).data, { result: 'lost', reason: 'dawn' });
+  assert.equal(run({ lanterns: lit(3, 2), time_left_s: 1 / 60 }, [], 1, { night: 2 }).snap.state, 'lost');
+  assert.equal(run({ lanterns: lit(4, 2), time_left_s: 1 / 60 }, [], 1, { night: 2 }).snap.state, 'won');
+  assert.equal(run({ lanterns: lit(4, 3), player: { pos: [0, 0, -30] }, time_left_s: 1 / 60 }, [], 1, { night: 3 }).snap.state, 'lost');
+  assert.equal(run({ lanterns: lit(5, 3), player: { pos: [0, 0, -30] }, time_left_s: 1 / 60 }, [], 1, { night: 3 }).snap.state, 'won');
+  const dying = run({ lanterns: lit(5), player: { flames: 1 }, shades: [{ pos: [0.2, 1, 0] }], time_left_s: 1 / 60 }, [], 1);
+  assert.deepEqual(dying.events.at(-1).data, { result: 'lost', reason: 'no_flames' });
+});
+
+test('night_start event, flames refill per night, night durations 240/270/300 (Ticket-03)', () => {
   assert.deepEqual(run({}, [], 1).events[0], { type: 'event', tick: 1, name: 'night_start', data: { night: 1 } });
-  assert.deepEqual([1, 2, 3].map((n) => createGame({ night: n }).timeStart), [300, 330, 360]);
+  assert.deepEqual([1, 2, 3].map((n) => createGame({ night: n }).timeStart), [240, 270, 300]);
   assert.equal(createGame({ night: 3 }).player.flames, 3);
   for (const n of [1, 2, 3]) { const p = MAPS[n].start; assert.equal(MAPS[n].heightAt(p[0], p[2]), p[1], `night ${n} start is on the ground`); }
 });
@@ -318,4 +335,71 @@ test('scenario setup emits nothing and pre-lit lanterns award no points', () => 
   const g = createGame({ seed: 1, scenario: { ...QUIET, lanterns: [{ id: 'L1', lit: true }] } });
   assert.equal(g.score, 0);
   assert.equal(snapshot(g).lanterns[0].lit, true);
+});
+
+// ---------- Ticket-03: lantern fuel ----------
+test('fuel: 100 when lit, burns 1/s (exact 1/60 steps), snapshot rounds to 1 decimal', () => {
+  const { snaps } = run({ lanterns: [{ id: 'L1', lit: true }] }, [], 90);
+  assert.equal(snaps[0].lanterns[0].fuel, 100);
+  assert.equal(snaps[60].lanterns[0].fuel, 99);
+  assert.equal(snaps[90].lanterns[0].fuel, 98.5);
+  assert.equal(snaps[0].lanterns[1].fuel, 0); // unlit lantern reports 0
+});
+
+test('lantern_out at fuel 0: deposited 0, ever_lit true; relight needs 5 and scores +40; relit_count', () => {
+  const { events, snaps } = run({ player: { pos: [0, 0, 24], carried: 6 }, lanterns: [{ id: 'L1', lit: true, fuel: 0.5 }] }, [{ tick: 40, interact: true }], 41);
+  assert.deepEqual(named(events, 'lantern_out')[0], { type: 'event', tick: 30, name: 'lantern_out', data: { lantern_id: 'L1' } });
+  assert.deepEqual(snaps[30].lanterns[0], { id: 'L1', pos: [0, 0, 25], lit: false, deposited: 0, fuel: 0, ever_lit: true, relit_count: 0 });
+  assert.equal(snaps[41].lanterns[0].relit_count, 1);
+  assert.equal(snaps[41].score, 25 + 40);
+});
+
+test('refuel uses at most ceil((100 - fuel)/10) motes, +5 each', () => {
+  const { events, g } = run({ player: { pos: [0, 0, 24], carried: 2 }, lanterns: [{ id: 'L1', lit: true, fuel: 40 }] }, [{ tick: 0, interact: true }], 1);
+  assert.deepEqual(named(events, 'refuel')[0].data, { lantern_id: 'L1', amount: 2, fuel: 60 }); // 39.983 + 20 = 59.983 -> 60.0
+  assert.equal(g.score, 10);
+});
+
+test('capacity = 10 + 2 x successful lights (max 20); scenario-lit lanterns do not count', () => {
+  assert.equal(run({ lanterns: [{ id: 'L1', lit: true }] }, [], 1).snap.player.capacity, 10);
+  assert.equal(run({ player: { successful_lights: 3 } }, [], 1).snap.player.capacity, 16);
+  assert.equal(run({ player: { successful_lights: 9 } }, [], 1).snap.player.capacity, 20);
+  assert.equal(run({ player: { pos: [0, 0, 24], carried: 10 } }, [{ tick: 0, interact: true }], 1).snap.player.capacity, 12);
+  assert.equal(run({ player: { carried: 11, successful_lights: 1 }, motes: [[0, 0, 0.5]] }, [], 1).g.player.carried, 12);
+});
+
+test('low fuel (< 30) loses the safe zone; 30 or more keeps it', () => {
+  const at = (fuel) => run({ player: { pos: [0, 0, 25] }, lanterns: [{ id: 'L1', lit: true, fuel }], shades: [{ pos: [0, 1, 18.95] }] }, [], 1).g.shades[0]; // 6.05 m: one chase step (0.067 m) would enter an unprotected zone
+  const d = (s) => Math.hypot(s.pos[0], s.pos[2] - 25);
+  assert.ok(d(at(30.02)) >= 6 - 1e-9); // still >= 30 after this tick's burn: protected
+  assert.ok(d(at(29)) < 6);
+});
+
+test('drain: wander shades go to the weak lantern, drain 5/s each (stacking), switch to chase when Mây is within 6 m', () => {
+  const sc = { lanterns: [{ id: 'L1', lit: true, fuel: 25 }], shades: [{ id: 'S1', pos: [0, 1, 23.5] }, { id: 'S2', pos: [0.5, 1, 23.5] }] };
+  const { snaps } = run(sc, [], 61);
+  assert.equal(snaps[1].shades[0].state, 'drain');
+  assert.equal(snaps[1].shades[1].state, 'drain');
+  // 61 ticks: 61 units burnt + 2 shades x 5 units x 60 drain ticks = 661 units -> (1500 - 661)/60 = 13.98 -> 14.0
+  assert.equal(snaps[61].lanterns[0].fuel, 14);
+  assert.equal(run({ ...sc, player: { pos: [0, 0, 18] } }, [], 2).snaps[2].shades[0].state, 'chase');
+});
+
+test('drain ends when the lantern goes out, or when it is refuelled to >= 30 (shades pushed out, harmless)', () => {
+  const out = run({ lanterns: [{ id: 'L1', lit: true, fuel: 0.2 }], shades: [{ id: 'S1', pos: [0, 1, 23.5], state: 'drain', target_lantern_id: 'L1' }] }, [], 5);
+  assert.notEqual(out.snap.shades[0].state, 'drain');
+  const sc = { player: { pos: [0, 0, 24], carried: 10 }, lanterns: [{ id: 'L1', lit: true, fuel: 10 }], shades: [{ id: 'S1', pos: [0.8, 1, 23.5], state: 'drain', target_lantern_id: 'L1' }] };
+  const r = run(sc, [{ tick: 0, interact: true }], 30);
+  assert.equal(named(r.events, 'refuel')[0].data.fuel, 100);
+  assert.equal(named(r.events, 'player_hit').length, 0);
+  near(Math.hypot(r.snaps[30].shades[0].pos[0], r.snaps[30].shades[0].pos[2] - 25), 6, 2e-3); // snapshot coords are rounded to 3 decimals
+});
+
+test('pulse on a draining shade scores 15 total (plain shade 5); stun ends in wander', () => {
+  const sc = { player: { pos: [0, 0, 20], carried: 3 }, lanterns: [{ id: 'L1', lit: true, fuel: 20 }], shades: [{ id: 'S1', pos: [0, 1, 23.5], state: 'drain', target_lantern_id: 'L1' }] };
+  const r = run(sc, [{ tick: 0, pulse: true }], 121);
+  assert.equal(r.snaps[1].score, 15);
+  assert.equal(r.snaps[120].shades[0].state, 'stunned');
+  assert.notEqual(r.snaps[121].shades[0].state, 'stunned');
+  assert.equal(run({ player: { carried: 3 }, shades: [{ pos: [3, 1, 0] }] }, [{ tick: 0, pulse: true }], 120).g.score, 5);
 });

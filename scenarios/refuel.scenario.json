@@ -1,0 +1,48 @@
+{
+  "_why": "L1 lit with fuel 55.5 (3330 units). Interact at tick 0: step 2 burns 1 unit first (3329) -> used = min(10, ceil((6000-3329)/600)) = 5 -> fuel = min(100, 55.48 + 50) = 100.0, carried 5. Score 5x5 = 25.",
+  "night": 1,
+  "seed": 1,
+  "ticks": 10,
+  "player": {
+    "pos": [
+      0,
+      0,
+      24
+    ],
+    "carried": 10
+  },
+  "random_motes": false,
+  "random_shades": false,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true,
+      "fuel": 55.5
+    }
+  ],
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 1,
+        "name": "refuel",
+        "data": {
+          "lantern_id": "L1",
+          "amount": 5,
+          "fuel": 100
+        }
+      }
+    ],
+    "end": {
+      "ticks": 10,
+      "state": "playing",
+      "score": 25
+    }
+  }
+}

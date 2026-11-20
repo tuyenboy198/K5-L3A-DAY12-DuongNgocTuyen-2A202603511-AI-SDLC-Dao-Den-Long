@@ -42,6 +42,7 @@ export function validateScenario(s, lanternIds) {
       dash_cd_ticks: opt(s.player, 'dash_cd_ticks', count, w),
       pulse_cd_ticks: opt(s.player, 'pulse_cd_ticks', count, w),
       charm_ticks: opt(s.player, 'charm_ticks', count, w),
+      successful_lights: opt(s.player, 'successful_lights', count, w),
     });
   }
   for (const k of ['random_motes', 'random_shades', 'random_drifters', 'wind_enabled']) if (s[k] !== undefined) out[k] = bool(s[k], `scenario.${k}`);
@@ -58,7 +59,7 @@ export function validateScenario(s, lanternIds) {
     out.shades = arr(s.shades, 'scenario.shades').map((sh, i) => {
       const w = `scenario.shades[${i}]`;
       if (!isObj(sh)) fail(`${w}: expected an object`);
-      return strip({ pos: vec(sh.pos, 3, `${w}.pos`), id: sh.id, state: opt(sh, 'state', (v, x) => oneOf(v, SHADE_STATES, x), w), state_ticks_left: opt(sh, 'state_ticks_left', count, w) });
+      return strip({ pos: vec(sh.pos, 3, `${w}.pos`), id: sh.id, state: opt(sh, 'state', (v, x) => oneOf(v, SHADE_STATES, x), w), state_ticks_left: opt(sh, 'state_ticks_left', count, w), target_lantern_id: opt(sh, 'target_lantern_id', (v, x) => oneOf(v, lanternIds, x), w) });
     });
     uniqueIds(out.shades, 'scenario.shades');
   }
@@ -82,7 +83,7 @@ export function validateScenario(s, lanternIds) {
     out.lanterns = arr(s.lanterns, 'scenario.lanterns').map((l, i) => {
       const w = `scenario.lanterns[${i}]`;
       if (!isObj(l) || !lanternIds.includes(l.id)) fail(`${w}.id: expected one of ${lanternIds.join(', ')}`);
-      return strip({ id: l.id, pos: opt(l, 'pos', (v, x) => vec(v, 3, x), w), deposited: opt(l, 'deposited', count, w), lit: opt(l, 'lit', bool, w) });
+      return strip({ id: l.id, pos: opt(l, 'pos', (v, x) => vec(v, 3, x), w), deposited: opt(l, 'deposited', count, w), lit: opt(l, 'lit', bool, w), ever_lit: opt(l, 'ever_lit', bool, w), fuel: opt(l, 'fuel', (v, x) => { const n = num(v, x); return n >= 0 && n <= 100 ? n : fail(`${x}: expected 0..100`); }, w) });
     });
   }
   if (s.time_left_s !== undefined) {

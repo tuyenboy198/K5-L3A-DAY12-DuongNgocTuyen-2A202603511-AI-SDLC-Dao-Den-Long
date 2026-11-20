@@ -1,4 +1,4 @@
-// Ticket-02 standard numbers. TUNING is what game.contract.json declares (tests/contract.test.js
+// Ticket-02 standard numbers, changed/extended by Ticket-03 (contract v1.2). TUNING is what game.contract.json declares (tests/contract.test.js
 // checks they are identical); RULES are the other standard numbers the contract does not list.
 export const TPS = 60;
 
@@ -11,9 +11,9 @@ export const TUNING = {
   interact_radius: 2,
   pulse_cost: 3,
   pulse_radius: 5,
-  night1_duration_s: 300,
-  night2_duration_s: 330,
-  night3_duration_s: 360,
+  night1_duration_s: 240,
+  night2_duration_s: 270,
+  night3_duration_s: 300,
   flames: 3,
   invuln_s: 1.5,
   hit_drop_ratio: 0.5,
@@ -27,7 +27,16 @@ export const TUNING = {
   dash_duration_s: 0.2,
   dash_cooldown_s: 1.5,
   fall_enabled: true,
-  score: { per_mote: 10, per_lantern: 100, per_stun: 5, per_second_left: 2, per_flame_left: 50 },
+  fuel_max: 100,
+  fuel_decay_per_s: 1.0,
+  fuel_per_mote: 10,
+  relight_cost: 5,
+  win_ratio: 0.6,
+  drain_per_s: 5,
+  low_fuel_threshold: 30,
+  capacity_max: 20,
+  // Ticket-03 replaced the whole score formula; time bonus removed (per_second_left 0). Relight/drain/dawn bonuses are in RULES.
+  score: { per_mote: 5, per_lantern: 100, per_stun: 5, per_second_left: 0, per_flame_left: 50 },
 };
 
 export const RULES = {
@@ -45,7 +54,11 @@ export const RULES = {
   drifterChaseCarry: 5, drifterChaseDist: 15, drifterHit: 1.2, drifterSteal: 3, drifterFleeTicks: 240, drifterDropVanish: 120,
   windEvery: 1800, windTicks: 300, windWarn: 120, windSpeed: 2,
   stepUp: 0.35, padRadius: 1,
+  // Ticket-03
+  scoreRelight: 40, scoreStunDrain: 15, scoreDawnLantern: 50, capacityPerLight: 2, drainRange: 2, drainBreakDist: 6, fuelEventEvery: 60,
 };
 
-export const SHADE_STATES = ['spawning', 'wander', 'chase', 'recoil', 'stunned'];
+export const SHADE_STATES = ['spawning', 'wander', 'chase', 'recoil', 'stunned', 'drain'];
+// Fuel is kept in integer 1/60 units (1 tick of decay = 1 unit) to avoid float drift.
+export const FUEL_UNIT = 60;
 export const DRIFTER_STATES = ['idle', 'chase', 'flee', 'removed'];

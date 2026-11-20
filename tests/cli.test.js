@@ -30,10 +30,11 @@ test('basic run: snapshot at tick 0, every 10 ticks, end line last, exit 0', () 
   assert.deepEqual(r.lines.at(-1), { type: 'end', ticks: 50, state: 'playing', score: 0 });
   const s = snaps[0];
   for (const k of ['type', 'tick', 'sim_tick', 'night', 'state', 'time_left_s', 'score', 'wind', 'player', 'lanterns', 'shades', 'motes_active', 'motes', 'drifters', 'charms']) assert.ok(k in s, k);
-  assert.deepEqual(s.player, { pos: [0, 0, 0], vel: [0, 0, 0], grounded: true, flames: contract.tuning.flames, carried: 0, invuln: false, dash_cd_s: 0, pulse_cd_s: 0, charm_s: 0 });
+  assert.deepEqual(s.player, { pos: [0, 0, 0], vel: [0, 0, 0], grounded: true, flames: contract.tuning.flames, carried: 0, capacity: 10, invuln: false, dash_cd_s: 0, pulse_cd_s: 0, charm_s: 0 });
   assert.deepEqual(s.wind, { active: false, dir_deg: 0 });
   assert.equal(s.night, 1);
   assert.equal(s.lanterns.length, 5);
+  assert.deepEqual(s.lanterns[0], { id: 'L1', pos: [0, 0, 25], lit: false, deposited: 0, fuel: 0, ever_lit: false, relit_count: 0 });
   assert.equal(s.motes.length, 20);
   for (const m of s.motes) assert.deepEqual(Object.keys(m), ['id', 'pos', 'kind', 'ttl_s']);
 });

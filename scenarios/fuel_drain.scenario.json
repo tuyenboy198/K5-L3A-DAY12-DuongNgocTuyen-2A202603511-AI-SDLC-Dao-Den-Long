@@ -1,0 +1,50 @@
+{
+  "_why": "L1 lit with fuel 20 (< 30: weak, no safe zone). Wander shade 2.53 m away walks to it at 1.5/60 m/tick: within 2 m after ceil(0.53/0.025)=22 steps -> drain from step 22. fuel_drain after 60 drain ticks = step 81 (tick 82): fuel = 20 - 82/60 (decay) - 60*5/60 (drain) = (1200-82-300)/60 = 13.633 -> 13.6.",
+  "night": 1,
+  "seed": 1,
+  "ticks": 100,
+  "random_motes": false,
+  "random_shades": false,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true,
+      "fuel": 20
+    }
+  ],
+  "shades": [
+    {
+      "id": "S1",
+      "pos": [
+        0,
+        1,
+        22.47
+      ]
+    }
+  ],
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 82,
+        "name": "fuel_drain",
+        "data": {
+          "lantern_id": "L1",
+          "shade_id": "S1",
+          "fuel": 13.6
+        }
+      }
+    ],
+    "end": {
+      "ticks": 100,
+      "state": "playing",
+      "score": 0
+    }
+  }
+}

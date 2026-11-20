@@ -1,0 +1,63 @@
+{
+  "_why": "L1 lit with fuel 0.5 (= 30 ticks) -> lantern_out at tick 30 (deposited 0, ever_lit). Mây stands 1 m away carrying 6; interact at tick 40 -> relight needs only 5: deposit 5, lantern_lit relight:true. Score 5x5 + 40 = 65.",
+  "night": 1,
+  "seed": 1,
+  "ticks": 60,
+  "player": {
+    "pos": [
+      0,
+      0,
+      24
+    ],
+    "carried": 6
+  },
+  "random_motes": false,
+  "random_shades": false,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true,
+      "fuel": 0.5
+    }
+  ],
+  "expect": {
+    "events": [
+      {
+        "tick": 1,
+        "name": "night_start",
+        "data": {
+          "night": 1
+        }
+      },
+      {
+        "tick": 30,
+        "name": "lantern_out",
+        "data": {
+          "lantern_id": "L1"
+        }
+      },
+      {
+        "tick": 41,
+        "name": "deposit",
+        "data": {
+          "lantern_id": "L1",
+          "amount": 5,
+          "deposited": 5
+        }
+      },
+      {
+        "tick": 41,
+        "name": "lantern_lit",
+        "data": {
+          "lantern_id": "L1",
+          "relight": true
+        }
+      }
+    ],
+    "end": {
+      "ticks": 60,
+      "state": "playing",
+      "score": 65
+    }
+  }
+}
