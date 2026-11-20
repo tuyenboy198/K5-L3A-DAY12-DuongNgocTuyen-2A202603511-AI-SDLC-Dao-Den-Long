@@ -27,7 +27,10 @@ const server = spawn(process.execPath, [join(dirname(fileURLToPath(import.meta.u
 await new Promise((r) => setTimeout(r, 600));
 const url = `http://localhost:${PORT}/web/?autostart&shot&seed=7${query ? '&' + query : ''}`;
 const r = spawnSync(browser, ['--headless=new', '--enable-unsafe-swiftshader', `--user-data-dir=${mkdtempSync(join(tmpdir(), 'ddl-shot-'))}`,
-  '--window-size=1280,720', `--virtual-time-budget=${ms}`, `--screenshot=${out}`, url], { stdio: 'ignore', timeout: 60000 });
+  '--window-size=1280,720', `--virtual-time-budget=${ms}`, `--screenshot=${out}`, '--enable-logging=stderr', '--v=0', url], { encoding: 'utf8', timeout: 60000 });
 server.kill();
+// Surface page-side problems (JS exceptions, console errors, shader compile failures) so a "pretty" PNG can't hide a broken page.
+const pageErrors = (r.stderr ?? '').split('\n').filter((l) => /CONSOLE|Uncaught|ERROR: 0:|THREE\.WebGL/.test(l) && !l.includes('chrome-extension://'));
+for (const l of pageErrors) console.error(`page: ${l.trim()}`);
 if (!existsSync(out)) { console.error(`screenshot failed (exit ${r.status})`); process.exit(1); }
-console.log(`saved ${out}  <-  ${url}`);
+console.log(`saved ${out}  <-  ${url}${pageErrors.length ? `  (${pageErrors.length} page log lines above)` : ''}`);
