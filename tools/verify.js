@@ -20,7 +20,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'ddl-verify-'));
 const runs = [[1, 42], [1, 42], [1, 43], [2, 42], [2, 42], [3, 42], [3, 42]].map(([night, seed], i) => {
   const out = join(tmp, `run${i}.jsonl`);
   const t0 = performance.now();
-  const r = sh(process.execPath, ['src/headless.js', '--seed', String(seed), '--night', String(night), '--inputs', 'scenarios/deposit_win.inputs.json', '--ticks', '21600', '--out', out]);
+  const r = sh(process.execPath, ['src/headless.js', '--seed', String(seed), '--night', String(night), '--inputs', 'scenarios/deposit_light.inputs.json', '--ticks', '21600', '--out', out]);
   const ms = performance.now() - t0;
   const body = readFileSync(out);
   return { night, seed, code: r.status, ms: ms.toFixed(0), sha: createHash('sha256').update(body).digest('hex').slice(0, 16), lines: body.toString().trim().split('\n').length };
@@ -55,7 +55,7 @@ ${tests.stdout.replace(/\x1b\[[0-9;]*m/g, '').trim()}
 
 ## 2. Determinism of the headless CLI: ${deterministic ? 'PASS' : 'FAIL'}
 
-Each night run with \`--ticks 21600\` (the contract's full-night maximum; it stops earlier when the night ends), inputs \`scenarios/deposit_win.inputs.json\`, default random entities.
+Each night run with \`--ticks 21600\` (the contract's full-night maximum; it stops earlier when the night ends), inputs \`scenarios/deposit_light.inputs.json\`, default random entities.
 
 | night | seed | exit | lines | sha256 (16) | wall ms |
 |---|---|---|---|---|---|

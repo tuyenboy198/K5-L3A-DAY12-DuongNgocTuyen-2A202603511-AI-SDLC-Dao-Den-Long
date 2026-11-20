@@ -88,6 +88,7 @@ Công cụ: **Claude Code** (model Claude Opus 5.5) trong VS Code. Harness: [CLA
 | HUD: nhãn `carry-num` không được tạo vì so số phần tử con có cả nhãn | `tools/screenshot.js` in "Uncaught TypeError" của trang | So theo số `.cell` |
 | Ký tự ⚠ trong CSS bị hỏng do escape lồng nhau | grep không thấy ký tự | Thay bằng regex trong Node |
 | Heredoc Bash bị lỗi trích dẫn lần nữa | "unexpected EOF" | Viết file tạm bằng Write rồi nối bằng Node |
+| Đổi tên `deposit_win` → `deposit_light` nhưng quên `tools/verify.js` vẫn dùng file inputs cũ; verify crash, mà chuỗi lệnh `| tail` nuốt mã lỗi nên tag phase-3 được push khi chưa có verify-report | Đọc output thấy ENOENT sau khi đã push | Sửa đường dẫn, chạy lại với `set -o pipefail`, commit báo cáo ngay sau tag |
 
 **Token / chi phí (ước tính):** khoảng 60–80k token output, khoảng 2–3M token input (phần lớn là cache của ngữ cảnh lặp lại), một phiên làm việc. Số chính xác xem bằng `/cost` trong Claude Code.
 
