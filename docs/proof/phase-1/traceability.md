@@ -16,7 +16,7 @@ Chạy lại ở tag `phase-1`: `npm test` và `npm run verify -- phase-1`. Kế
 | C2 | CLI và exit code | 4 kiểu inputs hỏng và 3 kiểu scenario hỏng → 2; thiếu `--seed` → ≠ 0 kèm stderr | `tests/cli.test.js` | ĐẠT |
 | C3 | Tick model, JSONL | Snapshot 0/10/…/50, `--snapshot-every`, thứ tự khóa, dòng end, làm tròn 3 chữ số, dừng sớm khi kết thúc | `tests/cli.test.js` | ĐẠT |
 | C4 | Tất định | Chạy CLI 2 lần cùng seed → giống từng byte; seed khác → khác | `cli.test.js`, [verify-report.md](verify-report.md) mục 2 | ĐẠT |
-| C5 | macOS/Linux | Node thuần; CI chạy ubuntu-latest + macos-latest | `.github/workflows/ci.yml` (tab Actions) | ĐẠT (đang chờ CI chạy lần đầu) |
+| C5 | macOS/Linux | Node thuần; CI chạy ubuntu-latest + macos-latest | `.github/workflows/ci.yml` (tab Actions) | ĐẠT: lần chạy CI đầu tiên trên commit `0404ab6` (tag phase-1) xanh trên cả ubuntu và macos (cập nhật sau khi tag) |
 
 ## Kiểm tra độ mạnh của test (mutation thủ công)
 

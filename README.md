@@ -61,12 +61,34 @@ npm run verify -- phase-1   # chạy test + kiểm tra tất định, ghi docs/p
 
 ## Sáng tạo của tôi
 
-Mọi phần dưới đây **chỉ nằm ở phần hiển thị** (`web/main.js`). Chúng không đụng tới `src/sim`, nên đầu ra headless không đổi. Bằng chứng: `npm test` vẫn xanh, và hash tất định trong [verify-report](docs/proof/phase-1/verify-report.md) không phụ thuộc vào `web/`.
+Mọi phần dưới đây **chỉ nằm ở phần hiển thị** (`web/`). Chúng không đụng tới `src/sim`, nên đầu ra headless không đổi. Bằng chứng: `npm test` vẫn xanh, và sau khi nâng cấp đồ họa, hash tất định của CLI vẫn giống từng byte với bản `phase-1` (`5d0efb60…`, xem [verify-report](docs/proof/phase-1/verify-report.md)). Ảnh chụp ở [docs/proof/visual-upgrade/](docs/proof/visual-upgrade/).
 
-1. **Đèn trên nón của Mây sáng dần theo số đom đóm đang mang**: mang càng nhiều, quanh Mây càng sáng. Mây nhấp nháy khi đang bất tử.
-2. **Âm thanh tự tổng hợp bằng WebAudio** (không dùng file asset): tiếng "ting" cao dần mỗi lần nhặt đom đóm, hợp âm khi thắp đèn, tiếng trầm khi bị chạm.
-3. **Đảo sáng dần lên**: mỗi đèn thắp xong thì ánh sáng môi trường tăng, sương tím tan bớt và bầu trời ấm lên. Vòng nạp quanh đèn sáng dần theo lượng đã nạp.
-4. **Gợi ý theo ngữ cảnh**: "Nhấn E để nạp đèn L2 (3/5)", "Bóng Mực tới gần! Nhấn F để tỏa sáng".
+1. **Đèn trên nón của Mây** treo như con lắc, đung đưa theo bước đi, và sáng dần theo số đom đóm đang mang. Mỗi đom đóm nhặt được sẽ bay vào chiếc đèn này.
+2. **Tương tác giữa Mây, đèn lồng và Bóng Mực** (chỉ là hiệu ứng):
+   - Khi nạp đèn, từng đom đóm bay theo đường cong từ đèn của Mây sang Đèn Lồng; vòng tiến độ dưới chân đèn đầy dần.
+   - Khi thắp xong, đèn bừng sáng, bắn ra pháo hoa ánh sáng, rồi có đom đóm bay vòng quanh.
+   - Bóng Mực chạm vào vùng an toàn của đèn đã thắp thì co rúm lại, nheo mắt, và vòng rào lóe sáng kèm tia lửa.
+   - Bóng Mực chuyển mắt sang màu hồng đỏ khi tới gần Mây, để lại vệt mực khi di chuyển, và trồi lên từ một vũng mực khi xuất hiện.
+   - Bị chạm thì màn hình rung, viền tím nháy, Mây ngả người ra sau và đom đóm bị rơi bắn tung ra.
+   - Tỏa sáng tạo sóng ánh sáng hai vòng. Bóng Mực bị choáng thì xoay tròn, có sao quay trên đầu.
+3. **Hoạt ảnh nhân vật**: Mây có chu kỳ bước chân (chân, tay, nhún người), thở khi đứng yên, xoay người mượt, giãn ra khi nhảy và nén lại khi tiếp đất (có bụi). Bóng Mực có thân "thở" và các xúc tu đung đưa.
+4. **Cảnh nền**:
+   - Bầu trời gradient có 3 lớp sao lấp lánh, trăng có quầng sáng và dải sáng chạy ở chân trời.
+   - Biển mây gợn sóng cùng các cụm mây trôi.
+   - Đảo nổi có vách đá, đáy hình nón, pha lê phát sáng treo dưới đáy. Xa xa có các đảo nhỏ lơ lửng.
+   - Trên đảo có cây thông nhiều tầng đung đưa, nấm phát sáng, đường đá dẫn tới từng đèn, đom đóm trang trí bay lượn.
+   - **Đảo sáng dần lên**: mỗi đèn thắp xong, bầu trời và sương ấm lên.
+5. **Chất lượng hình**:
+   - Render siêu lấy mẫu 1.5× trên màn hình thường; tone mapping ACES; bóng đổ mềm (shadow map 2048, đi theo nhân vật); bloom.
+   - Cây và đá chắn giữa camera và Mây sẽ tự mờ đi.
+   - Camera bám mượt, quay vòng quanh đảo ở màn tiêu đề và màn kết thúc.
+6. **Âm thanh tự tổng hợp bằng WebAudio** (không dùng file asset) và **HUD mới**: ngọn lửa, thanh đom đóm, 5 chấm đèn, thanh thời gian tới bình minh, gợi ý theo ngữ cảnh, bảng thống kê cuối ván.
+
+**Chế độ replay để demo và chụp ảnh tái lập được:**
+
+`http://localhost:8080/web/?scenario=../scenarios/deposit_win.scenario.json&inputs=../scenarios/deposit_win.inputs.json`
+
+Bản web sẽ phát lại đúng file inputs mà test headless dùng. Thêm `&ff=N` để tua nhanh N tick. Có thể chụp ảnh bằng `node tools/screenshot.js <out.png> "<query>" [ms]`.
 
 ## Tài liệu
 

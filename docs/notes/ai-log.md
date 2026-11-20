@@ -24,6 +24,21 @@ Công cụ: **Claude Code** (model Claude Opus 5.5) trong VS Code. Harness: [CLA
 | Heredoc lồng `python … || node …` không chạy gì | Grep file thấy chưa thay đổi | Dùng tool Edit thay cho script inline |
 | Ảnh đầu tiên quá tối | Mở PNG ra xem | Tăng hemisphere light và giảm sương |
 
+## Nâng cấp đồ họa (theo yêu cầu, trước Ticket-02)
+
+**Lời nhắc:** "cải thiện lại hoạt ảnh, hình nền, tăng độ phân giải cũng như các tương tác giữa nhân vật, ma, và lồng đèn".
+
+- Agent chỉ được sửa `web/` (theo quy tắc trong CLAUDE.md: sáng tạo chỉ nằm ở phần hiển thị). Kiểm chứng bằng `git status src` (không đổi) và hash tất định của CLI giống hệt phase-1.
+- Agent tự kiểm tra bằng ảnh chụp thật: `tools/screenshot.js` giờ in ra cả lỗi console và shader của trang, nên ảnh đẹp không che được trang bị lỗi.
+- Thêm chế độ replay `?inputs=`/`?ff=` để chụp đúng khoảnh khắc trong scenario.
+
+| Lỗi của AI | Phát hiện | Sửa |
+|---|---|---|
+| Cây và đá gần camera che kín nhân vật | Xem ảnh chụp | Làm mờ vật nằm trên đoạn camera → Mây |
+| Đèn đã thắp bị bloom làm cháy trắng | Xem ảnh chụp | Giảm emissive, light và halo |
+| Camera chuyển sang quay vòng ngay khi thắng nên mất hiệu ứng thắp đèn | Ảnh chụp lúc thắng chỉ thấy mặt đất | Chỉ chuyển camera khi màn kết thúc hiện ra |
+| Phát tiếng khi chưa có thao tác người dùng (cảnh báo AudioContext) | Log console trong lúc chụp | Chỉ tạo AudioContext sau khi có phím hoặc click |
+
 **Token / chi phí (ước tính):** khoảng 60–80k token output, khoảng 2–3M token input (phần lớn là cache của ngữ cảnh lặp lại), một phiên làm việc. Số chính xác xem bằng `/cost` trong Claude Code.
 
 **Cách tiết kiệm:**
