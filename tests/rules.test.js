@@ -107,7 +107,7 @@ test('detection 12 m, lose interest beyond 18 m; chase speed 4 m/s (4.5 on night
   const c = run({ shades: [{ pos: [11, 1, 0] }] }, [], 60);
   assert.equal(c.snap.shades[0].state, 'chase');
   near(c.g.shades[0].pos[0], 11 - 4, 1e-9);
-  near(run({ shades: [{ pos: [11, 1, 0] }] }, [], 60, { night: 3 }).g.shades[0].pos[0], 11 - 4.5, 1e-9);
+  near(run({ player: { pos: [0, 0, -30] }, shades: [{ pos: [11, 1, -30] }] }, [], 60, { night: 3 }).g.shades[0].pos[0], 11 - 4.5, 1e-9);
   const lost = run({ player: { pos: [0, 0, 0] }, shades: [{ pos: [17, 1, 0], state: 'chase' }] }, [{ tick: 0, move: [-1, 0] }], 30);
   assert.equal(lost.snap.shades[0].state, 'wander'); // Mây runs faster, gap > 18 m
 });
@@ -311,6 +311,7 @@ test('night_start event, flames refill per night, night durations 300/330/360', 
   assert.deepEqual(run({}, [], 1).events[0], { type: 'event', tick: 1, name: 'night_start', data: { night: 1 } });
   assert.deepEqual([1, 2, 3].map((n) => createGame({ night: n }).timeStart), [300, 330, 360]);
   assert.equal(createGame({ night: 3 }).player.flames, 3);
+  for (const n of [1, 2, 3]) { const p = MAPS[n].start; assert.equal(MAPS[n].heightAt(p[0], p[2]), p[1], `night ${n} start is on the ground`); }
 });
 
 test('scenario setup emits nothing and pre-lit lanterns award no points', () => {

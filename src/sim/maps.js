@@ -37,7 +37,9 @@ export const MAPS = {
   },
   3: {
     night: 3, name: 'Đảo Chuông', duration_s: 360, shadeSpeed: 4.5, shadeEvery: 360, shadeMax: 10,
-    start: [0, 0, 0],
+    // ASSUMPTION: the ticket gives no start for night 3 and (0,0,0) is inside the bell tower / under tier 2,
+    // so Mây starts on tier 0 south of the tower, facing +Z (towards it).
+    start: [0, 0, -30],
     heightAt: (x, z) => {
       const r = hyp(x, z);
       if (r > 45) return null;
