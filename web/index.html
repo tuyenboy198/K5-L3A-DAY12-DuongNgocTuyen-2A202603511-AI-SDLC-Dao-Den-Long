@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Đảo Đèn Lồng</title>
   <style>
-    /* Ticket-02 standard palette */
-    :root { --sky: #0E1430; --mist: #1B2350; --lit: #FFB347; --core: #FFE9B0; --gold: #F2C14E; --danger: #FF5A5F; --text: #F5F1E6; --red: #C8102E; --panel: rgba(14, 20, 48, .72); }
-    html, body { margin: 0; height: 100%; overflow: hidden; background: var(--sky); color: var(--text); font: 15px/1.4 system-ui, "Segoe UI", sans-serif; user-select: none; }
+    /* Ticket-02 standard palette. Ticket-04: every UI text >= 18 px at 1280x720 (--fs), large-text option x1.25 */
+    :root { --sky: #0E1430; --mist: #1B2350; --lit: #FFB347; --core: #FFE9B0; --gold: #F2C14E; --danger: #FF5A5F; --text: #F5F1E6; --red: #C8102E; --panel: rgba(14, 20, 48, .72); --fs: 18px; }
+    body.big { --fs: 22.5px; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: var(--sky); color: var(--text); font: var(--fs)/1.4 system-ui, "Segoe UI", sans-serif; user-select: none; }
     canvas { display: block; }
     .panel { background: var(--panel); backdrop-filter: blur(6px); border: 1px solid #F2C14E33; border-radius: 14px; box-shadow: 0 6px 24px #0008; }
     .hud { position: fixed; pointer-events: none; }
@@ -16,7 +17,7 @@
     #flames { top: 16px; left: 16px; display: flex; gap: 8px; padding: 10px 14px; }
     .flame { width: 18px; height: 26px; border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%; background: radial-gradient(circle at 50% 70%, var(--core), var(--lit) 50%, #ff7a2a 85%); box-shadow: 0 0 12px var(--lit); }
     .flame.off { background: #3a3d52; box-shadow: none; }
-    #clock { top: 14px; left: 50%; transform: translateX(-50%); padding: 6px 18px; font: 700 28px/1.2 ui-monospace, monospace; letter-spacing: .05em; }
+    #clock { top: 14px; left: 50%; transform: translateX(-50%); padding: 6px 18px; font: 700 calc(var(--fs) * 1.6)/1.2 ui-monospace, monospace; letter-spacing: .05em; }
     #clock.danger { color: var(--danger); animation: blink 1s steps(2) infinite; }
     /* Ticket-03 colour-blind palette: warnings white + a warning icon */
     body.cb { --danger: #FFFFFF; }
@@ -24,38 +25,54 @@
     #carry-num { margin-left: 8px; font-weight: 700; color: var(--core); align-self: center; }
     @keyframes blink { 50% { opacity: .35; } }
     #topright { top: 16px; right: 16px; padding: 8px 16px; text-align: right; }
-    #lanterns { font-weight: 600; } #score { font-size: 24px; font-weight: 800; color: var(--gold); }
+    #lanterns { font-weight: 600; } #score { font-size: calc(var(--fs) * 1.35); font-weight: 800; color: var(--gold); }
     #motebar { bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; padding: 8px 10px; }
     .cell { width: 22px; height: 22px; border-radius: 5px; background: #ffffff10; border: 1px solid #FFE58A33; }
     .cell.on { background: radial-gradient(circle, #FFF6C2, #FFE58A 70%); box-shadow: 0 0 10px #FFE58A; }
     #cooldowns { bottom: 20px; right: 20px; display: flex; gap: 12px; }
-    .cd { position: relative; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; text-align: center; line-height: 1.1;
+    .cd { position: relative; width: calc(var(--fs) * 5); height: calc(var(--fs) * 5); border-radius: 50%; display: grid; place-items: center; font-weight: 700; text-align: center; line-height: 1.1;
           background: conic-gradient(var(--lit) calc(var(--p, 1) * 360deg), #ffffff14 0); }
     .cd::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--sky); }
     .cd span { position: relative; } .cd.ready { box-shadow: 0 0 14px var(--lit); }
-    #charm { bottom: 92px; right: 22px; padding: 4px 10px; color: var(--text); border-color: var(--red); }
-    #prompt { bottom: 74px; left: 50%; transform: translateX(-50%); padding: 8px 16px; font-weight: 600; }
-    #toast { top: 70px; left: 50%; transform: translateX(-50%); padding: 6px 14px; font-size: 14px; }
-    #arrow { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 30px solid var(--lit); filter: drop-shadow(0 0 6px var(--lit)); transform-origin: 50% 50%; }
-    #fps { bottom: 8px; left: 8px; font: 12px ui-monospace, monospace; opacity: .7; }
+    #charm { bottom: calc(var(--fs) * 6.5); right: 22px; padding: 4px 10px; color: var(--text); border-color: var(--red); }
+    #prompt { bottom: 84px; left: 50%; transform: translateX(-50%); padding: 8px 16px; font-weight: 600; }
+    #toast { top: 78px; left: 50%; transform: translateX(-50%); padding: 6px 14px; }
+    /* Ticket-04 captions / visual cues */
+    #captions { left: 16px; top: 50%; transform: translateY(-50%); display: grid; gap: 6px; max-width: 36vw; }
+    #captions div { padding: 6px 12px; border-left: 4px solid var(--lit); }
+    #captions div.warn { border-left-color: var(--danger); }
+    #arrow, #shade-arrow { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 30px solid var(--lit); filter: drop-shadow(0 0 6px var(--lit)); transform-origin: 50% 50%; }
+    #shade-arrow { border-bottom-color: #A070FF; filter: drop-shadow(0 0 6px #7A3CFF); }
+    body.cb #shade-arrow { border-bottom-color: #00B3FF; }
+    #fps { bottom: 8px; left: 8px; font: var(--fs) ui-monospace, monospace; opacity: .7; }
     .flash { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle, transparent 35%, #7A3CFF 100%); opacity: 0; }
+    body.rm *, body.rm *::before { animation: none !important; } /* reduced motion: no blinking UI */
     /* screens */
     .screen { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at center, #0E143088, #070a1cdd); text-align: center; }
-    .card { max-width: 520px; padding: 28px 34px; }
-    .card h1 { margin: 0 0 6px; font-size: 42px; color: var(--lit); text-shadow: 0 0 24px #FFB347aa; }
-    .card h2 { margin: 0 0 8px; font-size: 30px; color: var(--lit); }
-    .sub { opacity: .8; margin: 0 0 14px; }
+    .card { max-width: 640px; max-height: calc(100vh - 40px); overflow: auto; box-sizing: border-box; padding: 24px 34px; }
+    .card h1 { margin: 0 0 6px; font-size: calc(var(--fs) * 2.3); color: var(--lit); text-shadow: 0 0 24px #FFB347aa; }
+    .card h2 { margin: 0 0 8px; font-size: calc(var(--fs) * 1.6); color: var(--lit); }
+    .sub { opacity: .85; margin: 0 0 14px; }
     .quote { font-style: italic; color: var(--core); margin: 14px 0; }
     .btns { display: grid; gap: 10px; margin-top: 16px; }
-    button { font: 600 16px system-ui, sans-serif; color: var(--sky); background: var(--lit); border: 0; border-radius: 10px; padding: 11px 18px; cursor: pointer; }
+    button { font: 600 var(--fs) system-ui, sans-serif; color: var(--sky); background: var(--lit); border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer; }
     button.ghost { background: transparent; color: var(--text); border: 1px solid #F5F1E655; }
-    button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     table.keys { margin: 12px auto; text-align: left; border-spacing: 14px 3px; }
-    kbd { padding: 2px 7px; border: 1px solid #F5F1E666; border-bottom-width: 2px; border-radius: 5px; font: 12px ui-monospace, monospace; }
-    .stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; margin: 14px auto; max-width: 280px; text-align: left; }
+    kbd { padding: 1px 7px; border: 1px solid #F5F1E666; border-bottom-width: 2px; border-radius: 5px; font: var(--fs) ui-monospace, monospace; }
+    .stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; margin: 14px auto; max-width: 420px; text-align: left; }
     .stats b { color: var(--gold); text-align: right; }
-    label.set { display: grid; grid-template-columns: 140px 1fr 40px; align-items: center; gap: 10px; margin: 10px 0; text-align: left; }
-    input[type=range] { accent-color: var(--lit); }
+    label.set { display: grid; grid-template-columns: 12em 1fr 3em; align-items: center; gap: 10px; margin: 8px 0; text-align: left; }
+    input[type=range], input[type=checkbox] { accent-color: var(--lit); }
+    input[type=checkbox] { width: 22px; height: 22px; justify-self: start; }
+    #keybinds { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; text-align: left; margin: 8px 0; }
+    #keybinds button { min-width: 7em; padding: 5px 10px; } #keybinds button.dup { background: var(--danger); }
+    .msg { min-height: 1.4em; margin: 6px 0 0; color: var(--core); } .msg.warn { color: var(--danger); }
+    form.save { display: grid; gap: 8px; margin: 10px auto 0; max-width: 420px; text-align: left; }
+    form.save input { font: var(--fs) system-ui, sans-serif; padding: 8px 10px; border-radius: 8px; border: 1px solid #F2C14E88; background: #0b1028; color: var(--text); }
+    #board-list { margin: 10px auto; border-collapse: collapse; min-width: 420px; }
+    #board-list th, #board-list td { padding: 4px 10px; text-align: left; } #board-list td.n { text-align: right; color: var(--gold); }
+    #board-list tr.me td { background: #FFB34733; }
   </style>
 </head>
 <body>
@@ -63,11 +80,13 @@
   <div id="clock" class="hud panel hidden">5:00</div>
   <div id="topright" class="hud panel hidden"><div id="lanterns">Đèn 0/5</div><div id="score">0</div></div>
   <div id="motebar" class="hud panel hidden"></div>
-  <div id="cooldowns" class="hud hidden"><div class="cd" id="cd-dash"><span>Lướt<br>Shift</span></div><div class="cd" id="cd-pulse"><span>Tỏa sáng<br>F</span></div></div>
+  <div id="cooldowns" class="hud hidden"><div class="cd" id="cd-dash"><span>Lướt<br><b class="k" data-k="dash"></b></span></div><div class="cd" id="cd-pulse"><span>Tỏa sáng<br><b class="k" data-k="pulse"></b></span></div></div>
   <div id="charm" class="hud panel hidden">Bùa Gió</div>
   <div id="prompt" class="hud panel hidden"></div>
   <div id="toast" class="hud panel hidden"></div>
+  <div id="captions" class="hud" aria-live="polite"></div>
   <div id="arrow" class="hud hidden"></div>
+  <div id="shade-arrow" class="hud hidden" title="Bóng Mực vừa xuất hiện"></div>
   <div id="fps" class="hud hidden"></div>
   <div class="flash" id="flash"></div>
 
@@ -75,17 +94,8 @@
     <div class="card panel">
       <h1>Đảo Đèn Lồng</h1>
       <p class="sub">Ba hòn đảo · Ba đêm · Một người giữ đèn nhỏ tuổi</p>
-      <table class="keys">
-        <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Chạy</td></tr>
-        <tr><td><kbd>Space</kbd></td><td>Nhảy</td></tr>
-        <tr><td><kbd>Shift</kbd></td><td>Lướt</td></tr>
-        <tr><td><kbd>E</kbd></td><td>Nạp ánh sáng vào đèn</td></tr>
-        <tr><td><kbd>F</kbd></td><td>Tỏa Sáng (3 đom đóm)</td></tr>
-        <tr><td colspan="2" style="opacity:.8">Đèn cạn dầu dần: châm dầu bằng <kbd>E</kbd>, giữ đủ đèn sáng tới bình minh.</td></tr>
-        <tr><td><kbd>←</kbd><kbd>→</kbd> / kéo chuột</td><td>Xoay camera</td></tr>
-        <tr><td><kbd>Esc</kbd> / <kbd>P</kbd></td><td>Tạm dừng</td></tr>
-      </table>
-      <div class="btns"><button data-act="start">Bắt đầu Đêm 1</button><button class="ghost" data-act="settings">Cài đặt</button></div>
+      <table class="keys" id="keyhelp"></table>
+      <div class="btns"><button data-act="start">Bắt đầu Đêm 1</button><button class="ghost" data-act="board">Bảng xếp hạng</button><button class="ghost" data-act="settings">Cài đặt</button></div>
     </div>
   </div>
   <div class="screen hidden" id="s-intro">
@@ -101,6 +111,7 @@
       <h2 id="result-title"></h2>
       <p class="sub" id="result-detail"></p>
       <div class="stats" id="result-stats"></div>
+      <div id="result-save"></div>
       <div class="btns" id="result-btns"></div>
     </div>
   </div>
@@ -109,7 +120,16 @@
       <h1>Bình Minh</h1>
       <p class="quote">Ông Đăng: "Ba hòn đảo đã sáng. Biển mây hôm nay đẹp quá, Mây ạ."</p>
       <div class="stats" id="dawn-stats"></div>
-      <div class="btns"><button data-act="menu">Về menu</button></div>
+      <div id="dawn-save"></div>
+      <div class="btns"><button class="ghost" data-act="menu">Về menu</button></div>
+    </div>
+  </div>
+  <div class="screen hidden" id="s-board">
+    <div class="card panel">
+      <h2>Bảng xếp hạng</h2>
+      <p class="sub">Top 10 · điểm = tổng điểm các Đêm đã thắng</p>
+      <table id="board-list"></table>
+      <div class="btns"><button data-act="board-back">Về menu</button></div>
     </div>
   </div>
   <div class="screen hidden" id="s-pause">
@@ -127,9 +147,15 @@
     <div class="card panel">
       <h2>Cài đặt</h2>
       <label class="set">Âm lượng <input type="range" id="set-volume" min="0" max="100"><span id="set-volume-v"></span></label>
-      <label class="set">Bảng màu dễ phân biệt <input type="checkbox" id="set-cb"><span></span></label>
       <label class="set">Độ nhạy chuột <input type="range" id="set-sens" min="10" max="300"><span id="set-sens-v"></span></label>
-      <div class="btns"><button data-act="settings-back">Xong</button></div>
+      <label class="set">Bảng màu dễ phân biệt <input type="checkbox" id="set-cb"><span></span></label>
+      <label class="set">Phụ đề / chỉ báo <input type="checkbox" id="set-captions"><span></span></label>
+      <label class="set">Giảm chuyển động <input type="checkbox" id="set-rm"><span></span></label>
+      <label class="set">Chữ lớn (×1.25) <input type="checkbox" id="set-big"><span></span></label>
+      <h2 style="margin-top:14px">Phím</h2>
+      <div id="keybinds"></div>
+      <p class="msg" id="bind-msg" aria-live="polite"></p>
+      <div class="btns"><button class="ghost" data-act="keys-reset">Khôi phục phím mặc định</button><button data-act="settings-back">Xong</button></div>
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-// Pure game logic (Test Contract v1.1). No DOM, no timers, no Math.random: same seed + night +
+// Pure game logic (Test Contract v1.2; g.bench = Ticket-04 benchmark scene, never set by the headless CLI). No DOM, no timers, no Math.random: same seed + night +
 // scenario + inputs => same result. Used by the headless CLI and the browser renderer.
 // step() follows the mandatory per-tick order of Ticket-02 (numbered comments below).
 import { TUNING as T, RULES as R, TPS, FUEL_UNIT } from './config.js';
@@ -278,7 +278,7 @@ export function step(g, input) {
   }
   // 2b (Ticket-03). Fuel: lit lanterns burn 1/s, each draining shade sucks 5/s (integer 1/60 units).
   const lanternById = (id) => g.lanterns.find((L) => L.id === id);
-  for (const L of g.lanterns) if (L.lit) L.fuel -= Math.round(T.fuel_decay_per_s * FUEL_UNIT / TPS);
+  if (!g.bench) for (const L of g.lanterns) if (L.lit) L.fuel -= Math.round(T.fuel_decay_per_s * FUEL_UNIT / TPS);
   for (const S of [...g.shades].sort(byId)) {
     if (S.state !== 'drain') continue;
     const L = lanternById(S.lanternId);
@@ -303,8 +303,8 @@ export function step(g, input) {
   // 3. Move Mây (jump, dash, pads, wind), then the fall check.
   movePlayer(g, input, pressed, emit);
 
-  // 4. Pick up motes and charms.
-  if (P.respawn === 0) {
+  // 4. Pick up motes and charms (off in the Ticket-04 bench scene).
+  if (P.respawn === 0 && !g.bench) {
     for (const m of g.motes) {
       if (P.carried >= capacityOf(P)) break;
       if (dXZ(P.pos, m.pos) <= T.pickup_radius && Math.abs(P.pos[1] - m.pos[1]) <= R.pickupDy) {
@@ -420,7 +420,7 @@ export function step(g, input) {
         else if (!L || !L.lit || L.fuel >= LOW_FUEL || dXZ(S.pos, L.pos) > R.drainRange) S.state = 'wander';
         if (S.state !== 'drain') S.lanternId = null;
       }
-      if (S.state === 'wander' && targetable && d <= R.shadeDetect) S.state = 'chase';
+      if (S.state === 'wander' && targetable && d <= R.shadeDetect && !g.bench) S.state = 'chase'; // bench: shades stay in wander
       else if (S.state === 'chase' && (!targetable || d > R.shadeLose)) S.state = 'wander';
       if (S.state === 'chase') moveToward(S.pos, P.pos, shadeSpeed);
       else if (S.state === 'wander') {
@@ -455,8 +455,8 @@ export function step(g, input) {
     settleY(g, D, R.drifterY);
   }
 
-  // 9. Contacts: drifters steal first, then at most one shade hit (ids ascending).
-  if (P.respawn === 0) {
+  // 9. Contacts: drifters steal first, then at most one shade hit (ids ascending). No damage in the bench scene.
+  if (P.respawn === 0 && !g.bench) {
     for (const D of [...g.drifters].sort(byId)) {
       if ((D.state !== 'idle' && D.state !== 'chase') || D.stole || P.carried === 0 || dXZ(D.pos, P.pos) > R.drifterHit) continue;
       const amount = Math.min(R.drifterSteal, P.carried);
@@ -502,7 +502,8 @@ export function step(g, input) {
     addDrifter(g, [p[0], groundY(g, p[0], p[2]) + R.drifterY, p[2]]);
   }
 
-  // 11. Win / lose.
+  // 11. Win / lose (the bench scene never ends).
+  if (g.bench) return done();
   const end = (result, reason) => { g.state = result; g.result = reason; emit('game_over', { result, reason }); };
   // Ticket-03: no early win. At dawn Mây must be alive with >= ceil(0.6 x total) lanterns lit.
   if (P.flames <= 0) end('lost', 'no_flames');

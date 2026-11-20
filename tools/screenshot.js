@@ -1,5 +1,5 @@
 // Screenshot the real browser build with headless Chrome/Edge.
-// node tools/screenshot.js <out.png> [query] [ms]   e.g. node tools/screenshot.js docs/proof/phase-1/lit.png "scenario=../scenarios/safe_lantern.scenario.json" 6000
+// node tools/screenshot.js <out.png> [query] [ms]   (query 'noauto&screen=settings|board' opens a menu screen)  e.g. node tools/screenshot.js docs/proof/phase-1/lit.png "scenario=../scenarios/safe_lantern.scenario.json" 6000
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
@@ -25,7 +25,8 @@ if (!browser) { console.error('No Chrome/Edge found; set CHROME=/path/to/browser
 const PORT = 8000 + Math.floor(Math.random() * 900);
 const server = spawn(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), 'serve.js'), String(PORT)], { stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 600));
-const url = `http://localhost:${PORT}/web/?autostart&shot&seed=7${query ? '&' + query : ''}`;
+const auto = /(^|&)noauto(&|$)/.test(query) ? '' : 'autostart&'; // noauto: stay on menus (e.g. screen=settings)
+const url = `http://localhost:${PORT}/web/?${auto}shot&seed=7${query ? '&' + query : ''}`;
 const r = spawnSync(browser, ['--headless=new', '--enable-unsafe-swiftshader', `--user-data-dir=${mkdtempSync(join(tmpdir(), 'ddl-shot-'))}`,
   '--window-size=1280,720', `--virtual-time-budget=${ms}`, `--screenshot=${out}`, '--enable-logging=stderr', '--v=0', url], { encoding: 'utf8', timeout: 60000 });
 server.kill();

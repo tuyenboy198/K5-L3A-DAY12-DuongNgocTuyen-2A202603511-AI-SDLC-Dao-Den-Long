@@ -7,8 +7,8 @@ import { TUNING } from '../src/sim/config.js';
 const c = JSON.parse(readFileSync(new URL('../game.contract.json', import.meta.url), 'utf8'));
 
 test('contract header fields', () => {
-  assert.equal(c.contract_version, '1.2');
-  for (const k of ['team', 'build_cmd', 'run_cmd', 'headless_cmd']) assert.equal(typeof c[k], 'string', k);
+  assert.equal(c.contract_version, '1.3');
+  for (const k of ['team', 'build_cmd', 'run_cmd', 'headless_cmd', 'bench_cmd', 'soak_cmd']) assert.equal(typeof c[k], 'string', k);
 });
 
 test('contract tuning == sim tuning', () => {

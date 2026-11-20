@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.0 / phase-4 (Ticket-04 "Bình minh", Test Contract v1.3)
+- contract_version 1.3: `bench_cmd` (`node tools/bench.js`) and `soak_cmd` added; `run_cmd` is now `node tools/serve.js` (same program as `npm run play`) so `--export-leaderboard` reaches it. No gameplay rule changed; headless output is byte-identical to phase-3.
+- Benchmark mode: standard scene (Night 1, 200 wandering shades, 100 motes, L1-L3 lit), real browser window at 1280x720 with vsync off, 3 s warm-up, avg / 1% low / p95 / load / peak memory -> bench.json. Shades are now drawn instanced (~1800 draw calls -> 5).
+- Soak test: 10 nights in one process with seeded random input -> soak.json.
+- Local leaderboard: name entry after a loss or at dawn (Vietnamese names accepted), top 10 on disk (data/leaderboard.json), menu screen, `--export-leaderboard`.
+- Accessibility: rebind every action (duplicate warning, reset, saved), captions + edge arrow for new shades, wind / last 10 s / low-fuel cues, reduced motion, all UI text >= 18 px at 1280x720 and a x1.25 large-text option.
+- Docs: README (requirements, bench, soak, leaderboard), ADR 0002, phase-4 notes, retro; tools/e2e-ui.js end-to-end UI check.
+
 ## phase-3 (Ticket-03 "Đèn cạn dầu", Test Contract v1.2)
 
 ### BREAKING CHANGES

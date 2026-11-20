@@ -97,3 +97,18 @@ Công cụ: **Claude Code** (model Claude Opus 5.5) trong VS Code. Harness: [CLA
 - Đọc lab board một lần rồi lưu tóm tắt contract vào repo (`docs/notes/test-contract-v1.0.md`) để các phase sau không phải đọc lại.
 - Không dùng framework hay bundler, nên agent không phải debug cấu hình build.
 - Test chạy trong 1.5 giây, nên vòng phản hồi nhanh.
+
+## Phase 4: Ticket-04 "Bình minh: phát hành v1.0.0"
+
+**Lời nhắc:** "tên tôi là "Dương Ngọc Tuyên", sửa lại toàn bộ họ tên lại cho tôi. Tiếp tục hoàn thành tiếp tục yêu cầu cho phase 4", kèm nguyên văn Ticket-04.
+
+**Cách làm với agent:**
+1. Sửa họ tên ở README và LICENSE trước.
+2. Phần chấm tự động làm trước: sim bench (cờ `g.bench`), công thức thống kê khung hình (test tính tay), soak, bảng xếp hạng cùng lệnh xuất. Mọi phần đều có test, và đã kiểm hash headless trùng với `phase-3`.
+3. Đo trước rồi mới tối ưu. Bench đầu tiên đạt 51.8 FPS, nên đổi Bóng Mực sang vẽ instanced, sau đó đạt 140.6.
+4. Soak "rò rỉ": đo từng vùng heap trước khi kết luận, thấy `heapUsed` phẳng, rồi ghi rõ cờ V8 và lý do.
+5. Giao diện kiểm bằng ảnh chụp và test e2e qua DevTools Protocol (`tools/e2e-ui.js`, 17 mục).
+
+**AI sai ở đâu:** xem bảng trong [docs/retro.md](../retro.md) §3. Gồm: regex mất dấu `\`, lệnh POST "first frame" sẽ làm bench dừng sớm, `cat` treo vì chờ stdin, `load_ms` bị cộng thời gian của lần thử bị treo.
+
+**Token:** xem [docs/retro.md](../retro.md) §5.
