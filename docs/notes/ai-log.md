@@ -39,6 +39,35 @@ Công cụ: **Claude Code** (model Claude Opus 5.5) trong VS Code. Harness: [CLA
 | Camera chuyển sang quay vòng ngay khi thắng nên mất hiệu ứng thắp đèn | Ảnh chụp lúc thắng chỉ thấy mặt đất | Chỉ chuyển camera khi màn kết thúc hiện ra |
 | Phát tiếng khi chưa có thao tác người dùng (cảnh báo AudioContext) | Log console trong lúc chụp | Chỉ tạo AudioContext sau khi có phím hoặc click |
 
+## Phase 2: Ticket-02 "Ba hòn đảo"
+
+**Lời nhắc chính:**
+- "Hiện tại phase 2 đã có trên artifacts, tiếp tục hoàn thiện toàn bộ theo yêu cầu phase 2".
+- Sau đó dán nguyên văn Ticket-02, vì agent không đọc được database của lab board (artifact thuộc tổ chức khác, bị từ chối truy cập).
+
+**Cách làm với agent:**
+1. Đọc ticket rồi tách thành ba phần: (1) sim + contract, (2) test, (3) UI, ưu tiên theo điểm. Phần (1) liên quan 30 điểm test ẩn nên làm trước.
+2. Viết lại `step()` đúng **12 bước** của ticket, mỗi bước có comment đánh số, để người review dò theo ticket.
+3. Tính tay 13 scenario trước, rồi mới chạy CLI để so. Cả 13 khớp **đúng từng tick** ngay lần đầu, kể cả pause/resume, rơi khỏi đảo, Gió Lạc cướp rồi đánh rơi.
+4. Mutation thủ công trên các luật mới. Một mutation lọt (bỏ đẩy Bóng ra khỏi vùng đèn vừa thắp), nên đã thêm kiểm tra vị trí ở tick 15. Mutation "nhặt từ tick sau" cho thấy điều kiện đó thừa, nên đã xóa code chết.
+5. Đo FPS bằng cửa sổ trình duyệt thật có GPU (`tools/fps.js`), vì headless chỉ render bằng phần mềm.
+
+**AI sai ở đâu:**
+
+| Lỗi | Phát hiện | Sửa |
+|---|---|---|
+| Đặt điểm xuất phát Đêm 3 ở (0,0,0), nằm trong tháp chuông nên Mây bị đẩy lên nóc tháp | Mở ảnh chụp Đêm 3 thì chỉ thấy mặt tháp | Đổi sang (0,0,−30), thêm test "điểm xuất phát nằm trên mặt đất", ghi giả định cần hỏi trợ giảng |
+| Scenario rơi khỏi đảo dùng `move [-1,0]` để đi +X (sai hướng) | Tự soát lại trước khi chạy | Sửa thành `[1,0]`; thêm dòng nhắc vào CLAUDE.md |
+| 7 test đầu tiên viết sai: giả định sai về trạng thái lúc tick 0, Bóng "lơ lửng" bị hạ độ cao, đứng yên nên nhặt lại bùa… | Đọc từng thông báo lỗi, đối chiếu với ticket | Sửa **test**, không sửa sim (trừ việc cho `createGame` nhận mote dạng mảng) |
+| Heredoc Bash bị lỗi trích dẫn khi ghi nhiều file JSON | Lỗi "unexpected EOF" | Gom scenario vào một file JSON rồi tách bằng Node |
+| Lần sửa `verify.js` bằng script lồng template string bị lỗi cú pháp nên không áp dụng gì | Báo cáo verify vẫn là bản cũ | Dùng tool Edit |
+| Đo FPS bị timeout ngẫu nhiên (cửa sổ bị che hoặc khởi động chậm) | Có Đêm báo "no result" | Thêm cờ không giảm tốc cửa sổ bị che, tự thử lại tối đa 3 lần |
+
+**Harness đã chỉnh trong Phase 2:**
+- CLAUDE.md: contract v1.1, bản đồ, quy ước góc, tránh biên số thực khi tính tay, nhắc hướng `move`.
+- Skill `verify-phase`: thêm bước mutation có `cmp`, đo FPS, đặt `night` cho scenario.
+- `tools/screenshot.js` in ra lỗi của trang; `tools/fps.js` mới.
+
 **Token / chi phí (ước tính):** khoảng 60–80k token output, khoảng 2–3M token input (phần lớn là cache của ngữ cảnh lặp lại), một phiên làm việc. Số chính xác xem bằng `/cost` trong Claude Code.
 
 **Cách tiết kiệm:**
