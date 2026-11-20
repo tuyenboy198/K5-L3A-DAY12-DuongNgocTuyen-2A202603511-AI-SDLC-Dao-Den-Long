@@ -1,5 +1,21 @@
 # Changelog
 
+## phase-3 (Ticket-03 "Đèn cạn dầu", Test Contract v1.2)
+
+### BREAKING CHANGES
+- contract_version 1.2; tuning adds fuel_max, fuel_decay_per_s, fuel_per_mote, relight_cost, win_ratio, drain_per_s, low_fuel_threshold, capacity_max.
+- Night durations 300/330/360 s -> **240/270/300 s**.
+- Win rule replaced: no early win; **won/dawn_survived** if alive at dawn with >= ceil(0.6 x lanterns) lit, else lost/dawn. game_over reason **all_lit removed**.
+- Score formula replaced: +5 per mote deposited (was +10), +100 first light, +40 relight, +5 (+15 if draining) per pulsed shade, dawn: 50 + floor(fuel) per lit lantern + 50 per flame; **time bonus removed** (score.per_second_left = 0).
+- Lit lanterns burn fuel and can go out (lantern_out, deposited reset, relight costs 5); lit lanterns accept refuel (refuel event).
+- Safe zone only while fuel >= 30. Shades gain state **drain** (fuel_drain event every 60 ticks); stun now always ends in wander.
+- Carry capacity grows: 10 + 2 x successful lights (max 20).
+- Snapshot: lanterns[].fuel/ever_lit/relit_count, player.capacity. lantern_lit gains relight. Scenario: lanterns[].fuel/ever_lit, player.successful_lights, shades[].target_lantern_id.
+
+### Other
+- UI: fuel bar + 1 Hz blink under 30, squashed/torn unlit lanterns, colour-blind palette setting (#00B3FF shades, white warnings with ⚠), HUD carried/capacity and lanterns needed, refuel/relight prompts.
+- Design decision: docs/adr/0001-lantern-fuel-and-dawn-win.md.
+
 ## phase-2 (Ticket-02, Test Contract v1.1)
 - Standard numbers everywhere; sim rewritten to the mandatory 12-step tick order.
 - Three standard maps (Đảo Bến / Đảo Cau / Đảo Chuông): bridge, jump pads, tiers, ramps, bell tower, wind.

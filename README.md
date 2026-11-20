@@ -3,9 +3,9 @@
 > **Video demo:** _(sẽ thêm ở Phase 4, đính kèm Release `v1.0.0`)_
 > Day 12 · AI SDLC Lab · Dương Ngọc Tuyến · 2A202603511
 
-Game 3D góc nhìn thứ ba chạy trên trình duyệt. Bạn điều khiển **Mây**, người giữ đèn nhỏ tuổi, đi qua **3 Đêm, 3 hòn đảo**: Đảo Bến, Đảo Cau, Đảo Chuông. Mỗi Đêm phải gom đom đóm để thắp lại mọi Đèn Lồng Lớn trước bình minh, đồng thời né **Bóng Mực** và **Gió Lạc**.
+Game 3D góc nhìn thứ ba chạy trên trình duyệt. Bạn điều khiển **Mây**, người giữ đèn nhỏ tuổi, đi qua **3 Đêm, 3 hòn đảo**: Đảo Bến, Đảo Cau, Đảo Chuông. Đèn **cạn dầu dần** và Bóng Mực còn hút dầu, nên mục tiêu mỗi Đêm là **giữ đủ đèn sáng tới bình minh** (Đêm 1 cần 3/5, Đêm 2 cần 4/6, Đêm 3 cần 5/7), đồng thời né **Bóng Mực** và **Gió Lạc**.
 
-Toàn bộ luật chơi nằm trong `src/sim/`, là JavaScript thuần, chạy tất định, theo **số chuẩn của Ticket-02**. Bản web và chế độ headless (**Test Contract v1.1**) cùng chạy **một** mã logic này.
+Toàn bộ luật chơi nằm trong `src/sim/`, là JavaScript thuần, chạy tất định, theo **số chuẩn của Ticket-02**. Bản web và chế độ headless (**Test Contract v1.2**) cùng chạy **một** mã logic này.
 
 ## Cài đặt và chạy (3 lệnh, macOS / Linux / Windows, cần Node ≥ 18)
 
@@ -31,22 +31,29 @@ Sau đó mở **http://localhost:8080/**. Game không có dependency npm (Three.
 | `Enter` | Bắt đầu / vào Đêm / Đêm tiếp theo |
 | `F3` | Hiện FPS |
 
+Cài đặt có **Bảng màu dễ phân biệt**: Bóng Mực màu xanh #00B3FF, cảnh báo màu trắng kèm ⚠. Đèn tắt luôn bị xẹp và rách giấy, nên phân biệt được không cần màu.
+
 ## Luật (số chuẩn Ticket-02) và cách tính điểm
 
 - **Ba Đêm:**
 
   | Đêm | Đảo | Thời gian | Đèn | Đặc điểm |
   |---|---|---|---|---|
-  | 1 | Đảo Bến | 300 s | 5 | Một đảo tròn |
-  | 2 | Đảo Cau | 330 s | 6 | Hai đảo nối bằng cầu tre, có bục nhảy, Gió Lạc, Bùa Gió |
-  | 3 | Đảo Chuông | 360 s | 7 | 3 tầng, có dốc, bục nhảy, tháp chuông, gió mạnh mỗi 30 s |
+  | 1 | Đảo Bến | 240 s | 5 (cần 3) | Một đảo tròn |
+  | 2 | Đảo Cau | 270 s | 6 (cần 4) | Hai đảo nối bằng cầu tre, có bục nhảy, Gió Lạc, Bùa Gió |
+  | 3 | Đảo Chuông | 300 s | 7 (cần 5) | 3 tầng, có dốc, bục nhảy, tháp chuông, gió mạnh mỗi 30 s |
 
   Thắng thì sang Đêm kế tiếp; thua thì chơi lại Đêm đó. Thắng Đêm 3 hiện màn hình Bình Minh với tổng điểm.
 - **Mây:** 3 Ngọn Lửa (hồi đầy mỗi Đêm), mang tối đa 10 đom đóm.
   - Chạy 6 m/s; nhảy 7 m/s.
   - Lướt 14 m/s trong 0.2 s, hồi chiêu 1.5 s.
   - Rơi khỏi đảo: mất 1 Ngọn Lửa và toàn bộ đom đóm, hồi sinh ở điểm xuất phát.
-- **Đèn:** cần 10 đom đóm, nạp nhiều lần được. Đèn đã sáng tạo vùng an toàn 6 m mà Bóng Mực không vào được.
+- **Đèn:** thắp lần đầu cần 10 đom đóm, nạp nhiều lần được. Đèn sáng có **100 dầu**, hao 1/giây.
+  - Nhấn `E` ở đèn đang sáng để **châm dầu**: mỗi đom đóm thêm 10 dầu.
+  - Hết dầu thì đèn tắt; thắp lại chỉ cần 5 đom đóm.
+  - Đèn sáng tạo vùng an toàn 6 m, nhưng **dưới 30 dầu thì mất vùng**: đèn và thanh dầu nhấp nháy, Bóng Mực tới hút dầu (5/giây mỗi con).
+- **Sức chứa** tăng 2 sau mỗi lần thắp thành công (10 → tối đa 20).
+- **Thắng:** còn sống lúc bình minh và đủ số đèn đang sáng. Thắp đủ đèn sớm không kết thúc Đêm.
 - **Bóng Mực:** phát hiện Mây ở 12 m, bỏ đuổi khi xa quá 18 m, tốc độ 4 m/s (Đêm 3: 4.5 m/s). Bị chạm thì:
   - mất 1 Ngọn Lửa
   - rơi một nửa số đom đóm đang mang (nhặt lại được trong 8 s)
@@ -57,11 +64,11 @@ Sau đó mở **http://localhost:8080/**. Game không có dependency npm (Three.
 
 | Sự kiện | Điểm |
 |---|---|
-| Mỗi đom đóm nạp vào đèn | +10 |
-| Thắp 1 đèn | +100 |
-| Mỗi Bóng Mực trúng Tỏa Sáng (mỗi lần) | +5 |
-| Khi thắng: mỗi giây còn lại (làm tròn xuống) | +2 |
-| Khi thắng: mỗi Ngọn Lửa còn lại | +50 |
+| Mỗi đom đóm nạp vào đèn (thắp, thắp lại, châm dầu) | +5 |
+| Thắp lần đầu / thắp lại | +100 / +40 |
+| Mỗi Bóng Mực trúng Tỏa Sáng (+15 nếu nó đang hút dầu) | +5 |
+| Bình minh (khi thắng): mỗi đèn đang sáng | +50 + số dầu còn lại |
+| Bình minh (khi thắng): mỗi Ngọn Lửa còn lại | +50 |
 
 Tổng điểm game là tổng điểm của các Đêm đã thắng.
 
@@ -69,13 +76,13 @@ Tổng điểm game là tổng điểm của các Đêm đã thắng.
 
 ```bash
 node src/headless.js --seed 42 --night 2 --ticks 21600 --out out.jsonl [--scenario f.json] [--inputs f.json] [--snapshot-every 10]
-npm test                    # 66 test: luật chơi, 3 bản đồ, CLI, contract, 13 scenario tính tay
-npm run verify -- phase-2   # test + tất định 3 Đêm + thời gian một Đêm, ghi docs/proof/phase-2/verify-report.md
+npm test                    # 79 test: luật chơi, 3 bản đồ, CLI, contract, 13 scenario tính tay
+npm run verify -- phase-3   # test + tất định 3 Đêm + thời gian một Đêm, ghi docs/proof/phase-2/verify-report.md
 node tools/fps.js 12        # đo FPS bằng cửa sổ trình duyệt thật, ghi docs/proof/phase-2/fps.md
 ```
 
 - Khai báo contract nằm ở [`game.contract.json`](game.contract.json) (v1.1, số chuẩn). Không có trường `null`. `fall_enabled: true`.
-- Trạng thái Bóng Mực: `spawning`, `wander`, `chase`, `recoil`, `stunned`. Trạng thái Gió Lạc: `idle`, `chase`, `flee`, `removed`.
+- Trạng thái Bóng Mực: `spawning`, `wander`, `chase`, `recoil`, `stunned`, `drain`. Quyết định thiết kế đèn và nhiên liệu: [ADR 0001](docs/adr/0001-lantern-fuel-and-dawn-win.md); breaking changes: [CHANGELOG](CHANGELOG.md). Trạng thái Gió Lạc: `idle`, `chase`, `flee`, `removed`.
 - `player.invuln` là boolean (đang bất tử hay không). Số tick bất tử còn lại đặt qua scenario `player.invuln_ticks`.
 - **Điểm xuất phát Đêm 3 là (0, 0, −30)**, vì (0,0,0) nằm trong tháp chuông. Các giả định khác ở [docs/notes/phase-2.md](docs/notes/phase-2.md).
 - Scenario mẫu (kèm kết quả mong đợi tính tay) ở [`scenarios/`](scenarios/). Bản web phát lại được một scenario:

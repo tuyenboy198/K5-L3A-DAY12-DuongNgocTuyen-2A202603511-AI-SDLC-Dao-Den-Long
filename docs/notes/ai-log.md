@@ -68,6 +68,27 @@ Công cụ: **Claude Code** (model Claude Opus 5.5) trong VS Code. Harness: [CLA
 - Skill `verify-phase`: thêm bước mutation có `cmp`, đo FPS, đặt `night` cho scenario.
 - `tools/screenshot.js` in ra lỗi của trang; `tools/fps.js` mới.
 
+## Phase 3: Ticket-03 "Đèn cạn dầu" (change request, 30 phút)
+
+**Lời nhắc:** dán nguyên văn Ticket-03, kèm "Hoàn thiện tiếp công việc phase 3".
+
+**Cách làm:**
+1. Viết ADR trước khi sửa code, chốt hai quyết định: lưu dầu bằng số nguyên 1/60, và vùng an toàn là hàm suy ra `hasZone()`.
+2. Sửa sim bằng các Edit nhỏ, đúng vị trí bước 2b, 5, 6, 7, 8, 11.
+3. Chạy test cũ để thấy chính xác **8 test** bị luật mới thay. Sửa hoặc xóa từng test, ghi lý do trong phase-3.md.
+4. Thêm 4 scenario tính tay. Chủ động chọn số không rơi vào biên làm tròn (fuel 13.633 thay vì 13.65), và cả 4 khớp ngay lần chạy đầu.
+5. Mutation 5 luật mới: cả 5 đều bị bắt.
+
+**AI sai ở đâu:**
+
+| Lỗi | Phát hiện | Sửa |
+|---|---|---|
+| Test "dầu < 30 mất vùng" đặt Bóng quá xa (6.5 m), 1 tick không thể vào trong 6 m dù không có vùng | Test fail | Đặt Bóng ở 6.05 m |
+| So khoảng cách với 1e-6 trên tọa độ snapshot đã làm tròn 3 chữ số | Debug in khoảng cách thật = 6.000000 | Dung sai 2e-3 |
+| HUD: nhãn `carry-num` không được tạo vì so số phần tử con có cả nhãn | `tools/screenshot.js` in "Uncaught TypeError" của trang | So theo số `.cell` |
+| Ký tự ⚠ trong CSS bị hỏng do escape lồng nhau | grep không thấy ký tự | Thay bằng regex trong Node |
+| Heredoc Bash bị lỗi trích dẫn lần nữa | "unexpected EOF" | Viết file tạm bằng Write rồi nối bằng Node |
+
 **Token / chi phí (ước tính):** khoảng 60–80k token output, khoảng 2–3M token input (phần lớn là cache của ngữ cảnh lặp lại), một phiên làm việc. Số chính xác xem bằng `/cost` trong Claude Code.
 
 **Cách tiết kiệm:**
